@@ -73,7 +73,11 @@ export default async function handler(req, res) {
                 messages,
                 stream: true,
                 temperature: 0.6,
-                max_tokens: 300,
+                // Roomy cap + reasoning off: Kimi is a reasoning model, and if
+                // it "thinks" it can spend the whole token budget before any
+                // visible words, returning an empty reply.
+                max_tokens: 800,
+                reasoning: { enabled: false },
             }),
         });
 
@@ -115,9 +119,10 @@ export default async function handler(req, res) {
                     'Authorization': `Bearer ${apiKey}`,
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ model: MODEL, messages, stream: false, temperature: 0.6, max_tokens: 300 }),
+                body: JSON.stringify({ model: MODEL, messages, stream: false, temperature: 0.6, max_tokens: 800, reasoning: { enabled: false } }),
             }).then((r) => r.json()).catch(() => null);
             const text = retry?.choices?.[0]?.message?.content;
+            if (!text) console.error('Retry also empty. Response shape:', JSON.stringify(retry)?.slice(0, 600));
             res.write(text || `Sorry, doctor — my mind went completely blank for a second there. What was it you asked?`);
         }
         res.end();
