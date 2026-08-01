@@ -261,6 +261,11 @@ async function getPatientReply(doctorText) {
             pending = rest;
         }
         if (pending.trim()) enqueueSpeech(pending.trim());
+        if (!full.trim()) {
+            full = `Sorry doctor, I didn't quite catch that. Could you say it again?`;
+            bubble.textContent = full;
+            enqueueSpeech(full);
+        }
     } catch (err) {
         console.error(err);
         full = full || `Sorry doctor, I didn't quite catch that.`;

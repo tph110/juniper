@@ -87,6 +87,7 @@ export default async function handler(req, res) {
         // Parse the SSE stream and forward only the text deltas.
         const decoder = new TextDecoder();
         let buffer = '';
+        let wroteAny = false;
         for await (const chunk of upstream.body) {
             buffer += decoder.decode(chunk, { stream: true });
             const lines = buffer.split('\n');
@@ -95,10 +96,29 @@ export default async function handler(req, res) {
                 const data = line.replace(/^data: ?/, '').trim();
                 if (!data || data === '[DONE]' || !line.startsWith('data:')) continue;
                 try {
-                    const delta = JSON.parse(data)?.choices?.[0]?.delta?.content;
-                    if (delta) res.write(delta);
+                    const parsed = JSON.parse(data);
+                    if (parsed?.error) console.error('OpenRouter mid-stream error:', parsed.error);
+                    const delta = parsed?.choices?.[0]?.delta?.content;
+                    if (delta) { res.write(delta); wroteAny = true; }
                 } catch (_) { /* ignore malformed keepalive lines */ }
             }
+        }
+
+        // Providers occasionally return an empty stream. Never pass silence on
+        // to the student — retry once without streaming, then fall back to an
+        // in-character line.
+        if (!wroteAny) {
+            console.error('Empty stream from OpenRouter; retrying non-streaming');
+            const retry = await fetch(OPENROUTER_URL, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${apiKey}`,
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ model: MODEL, messages, stream: false, temperature: 0.6, max_tokens: 300 }),
+            }).then((r) => r.json()).catch(() => null);
+            const text = retry?.choices?.[0]?.message?.content;
+            res.write(text || `Sorry, doctor — my mind went completely blank for a second there. What was it you asked?`);
         }
         res.end();
     } catch (err) {
