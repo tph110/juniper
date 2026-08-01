@@ -1,0 +1,281 @@
+/* Juniper — consultation simulator styles */
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+    --juniper: #3e6b4f;
+    --juniper-dark: #2e5340;
+    --juniper-pale: #e6efe9;
+    --ink: #24312a;
+    --paper: #f7f9f7;
+    --card: #ffffff;
+    --line: #dbe4dd;
+    --good: #2e7d4f;
+    --okay: #b07d21;
+    --poor: #b3541e;
+    --dangerous: #b3261e;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: var(--paper);
+    color: var(--ink);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+header {
+    display: flex;
+    align-items: baseline;
+    gap: 16px;
+    padding: 12px 22px;
+    background: var(--juniper);
+    color: #fff;
+}
+.brand { font-size: 1.15rem; font-weight: 700; letter-spacing: 0.02em; }
+.header-scenario { font-size: 0.9rem; opacity: 0.85; }
+
+main {
+    flex: 1;
+    display: grid;
+    grid-template-columns: 300px 1fr;
+    gap: 18px;
+    padding: 18px 22px;
+    min-height: 0;
+    max-width: 1100px;
+    width: 100%;
+    margin: 0 auto;
+}
+
+/* --- Patient panel ------------------------------------------------------ */
+.patient-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+.portrait-frame {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(46, 83, 64, 0.08);
+}
+.portrait-frame svg { display: block; width: 100%; height: auto; }
+
+.jp-breathe { animation: jp-breathe 4.2s ease-in-out infinite; }
+@keyframes jp-breathe {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+.jp-sway { animation: jp-sway 7s ease-in-out infinite; transform-origin: 120px 190px; }
+@keyframes jp-sway {
+    0%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(0.7deg); }
+    70% { transform: rotate(-0.6deg); }
+}
+
+.patient-info {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 12px 14px;
+}
+.patient-name { font-weight: 700; }
+.patient-meta { font-size: 0.85rem; color: #5c6b61; margin-top: 2px; }
+.patient-status { font-size: 0.8rem; color: var(--juniper); min-height: 1.1em; margin-top: 6px; font-style: italic; }
+
+.examine-btn {
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: var(--ink);
+    transition: background 150ms;
+}
+.examine-btn:hover:not(:disabled) { background: var(--juniper-pale); }
+.examine-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* --- Consult panel ------------------------------------------------------ */
+.consult-panel {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 2px 10px rgba(46, 83, 64, 0.08);
+}
+
+.transcript {
+    flex: 1;
+    overflow-y: auto;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.bubble {
+    max-width: 78%;
+    padding: 10px 14px;
+    border-radius: 14px;
+    line-height: 1.45;
+    font-size: 0.95rem;
+    white-space: pre-wrap;
+}
+.bubble.doctor {
+    align-self: flex-end;
+    background: var(--juniper);
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+.bubble.patient {
+    align-self: flex-start;
+    background: var(--juniper-pale);
+    border-bottom-left-radius: 4px;
+}
+.bubble.patient.streaming::after { content: '▍'; opacity: 0.5; animation: jp-cursor 1s infinite; }
+@keyframes jp-cursor { 50% { opacity: 0; } }
+
+.bubble.card {
+    align-self: center;
+    max-width: 90%;
+    background: #fdf9ef;
+    border: 1px solid #ecdfc0;
+    font-size: 0.88rem;
+}
+.bubble.card strong { display: block; margin-bottom: 4px; }
+
+/* --- Decision panel ----------------------------------------------------- */
+.decision-panel { display: none; border-top: 1px solid var(--line); padding: 14px 18px; background: #fbfdfb; }
+.decision-panel.active { display: block; }
+.decision-question { font-weight: 700; margin-bottom: 10px; }
+.decision-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 8px; }
+.decision-option {
+    text-align: left;
+    padding: 10px 12px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    cursor: pointer;
+    transition: border-color 150ms, background 150ms;
+}
+.decision-option:hover { border-color: var(--juniper); background: var(--juniper-pale); }
+.decision-label { display: block; font-weight: 650; font-size: 0.92rem; }
+.decision-detail { display: block; font-size: 0.8rem; color: #5c6b61; margin-top: 3px; }
+.decision-hint { font-size: 0.78rem; color: #7a887e; margin-top: 8px; }
+
+/* --- Input row ---------------------------------------------------------- */
+.input-row { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); }
+#doctor-input {
+    flex: 1;
+    padding: 11px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    font-size: 0.95rem;
+    outline: none;
+}
+#doctor-input:focus { border-color: var(--juniper); }
+#send-btn {
+    padding: 11px 22px;
+    border: none;
+    border-radius: 10px;
+    background: var(--juniper);
+    color: #fff;
+    font-weight: 650;
+    cursor: pointer;
+}
+#send-btn:hover:not(:disabled) { background: var(--juniper-dark); }
+#send-btn:disabled { opacity: 0.5; cursor: default; }
+
+/* --- Overlays ----------------------------------------------------------- */
+.overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(36, 49, 42, 0.55);
+    backdrop-filter: blur(3px);
+    z-index: 20;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+.overlay.active { display: flex; }
+.overlay-card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 34px 38px;
+    max-width: 560px;
+    width: 100%;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: 0 18px 50px rgba(0, 0, 0, 0.25);
+}
+.overlay-brand { color: var(--juniper); font-weight: 700; margin-bottom: 6px; }
+.overlay-card h1 { font-size: 1.45rem; margin-bottom: 12px; }
+.overlay-card h2 { font-size: 1.05rem; margin: 20px 0 8px; }
+.overlay-card p { line-height: 1.55; margin-bottom: 12px; font-size: 0.95rem; }
+.overlay-scenario { color: #5c6b61; font-size: 0.88rem; }
+.overlay-small { font-size: 0.8rem; color: #7a887e; margin: 10px 0 0; }
+.primary-btn {
+    padding: 13px 26px;
+    border: none;
+    border-radius: 12px;
+    background: var(--juniper);
+    color: #fff;
+    font-size: 1rem;
+    font-weight: 650;
+    cursor: pointer;
+    margin-top: 6px;
+}
+.primary-btn:hover { background: var(--juniper-dark); }
+
+/* --- Debrief ------------------------------------------------------------ */
+.debrief-card { max-width: 640px; }
+.debrief-scoreline { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; }
+.debrief-score {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: var(--juniper);
+    background: var(--juniper-pale);
+    border-radius: 12px;
+    padding: 8px 16px;
+}
+.debrief-item { border-left: 4px solid var(--line); padding: 10px 14px; margin-bottom: 10px; background: #fafbfa; border-radius: 0 10px 10px 0; }
+.debrief-item.q-good { border-color: var(--good); }
+.debrief-item.q-okay { border-color: var(--okay); }
+.debrief-item.q-poor { border-color: var(--poor); }
+.debrief-item.q-dangerous { border-color: var(--dangerous); background: #fdf4f3; }
+.debrief-choice { font-weight: 650; font-size: 0.93rem; }
+.debrief-badge {
+    display: inline-block;
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    padding: 2px 8px;
+    border-radius: 20px;
+    margin-right: 6px;
+    background: var(--line);
+}
+.q-good .debrief-badge { background: #dcefe3; color: var(--good); }
+.q-okay .debrief-badge { background: #f5ead2; color: var(--okay); }
+.q-poor .debrief-badge { background: #f6e2d4; color: var(--poor); }
+.q-dangerous .debrief-badge { background: #f8d9d7; color: var(--dangerous); }
+.debrief-feedback { font-size: 0.88rem; line-height: 1.5; margin-top: 5px; color: #46544b; }
+#debrief-learning { padding-left: 20px; }
+#debrief-learning li { font-size: 0.9rem; line-height: 1.55; margin-bottom: 8px; }
+
+/* --- Responsive --------------------------------------------------------- */
+@media (max-width: 760px) {
+    main { grid-template-columns: 1fr; grid-template-rows: auto 1fr; padding: 12px; gap: 12px; }
+    .patient-panel { flex-direction: row; align-items: stretch; }
+    .portrait-frame { width: 130px; flex-shrink: 0; }
+    .patient-info { flex: 1; }
+    .examine-btn { align-self: flex-end; }
+    .bubble { max-width: 90%; }
+}

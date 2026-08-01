@@ -1,0 +1,12 @@
+{
+  "name": "juniper",
+  "version": "0.1.0",
+  "description": "Gamified AI patient consultation simulator for healthcare training",
+  "type": "module",
+  "scripts": {
+    "dev": "node dev-server.js"
+  },
+  "engines": {
+    "node": ">=18.x"
+  }
+}

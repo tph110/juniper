@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Juniper — Consultation Simulator</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌿</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="brand">🌿 Juniper</div>
+        <div class="header-scenario" id="scenario-title"></div>
+    </header>
+
+    <main>
+        <aside class="patient-panel">
+            <div id="portrait" class="portrait-frame"></div>
+            <div class="patient-info">
+                <div class="patient-name" id="patient-name"></div>
+                <div class="patient-meta" id="patient-meta"></div>
+                <div class="patient-status" id="patient-status"></div>
+            </div>
+            <button id="examine-btn" class="examine-btn">🩺 Examine patient</button>
+        </aside>
+
+        <section class="consult-panel">
+            <div id="transcript" class="transcript"></div>
+            <div id="decision-panel" class="decision-panel"></div>
+            <form class="input-row" id="input-form">
+                <input id="doctor-input" type="text" autocomplete="off"
+                       placeholder="Speak to Margaret… (e.g. ‘Tell me more about this tightness’)">
+                <button id="send-btn" type="submit">Send</button>
+            </form>
+        </section>
+    </main>
+
+    <!-- Start overlay -->
+    <div id="start-overlay" class="overlay active">
+        <div class="overlay-card">
+            <div class="overlay-brand">🌿 Juniper</div>
+            <h1>Consultation Simulator</h1>
+            <p class="overlay-scenario"><span id="scenario-setting"></span></p>
+            <p>Your next patient is <strong>Margaret Hughes</strong>, 58. The booking note says
+               <em>“chest discomfort”</em>. Take a history, examine if you wish, and make your
+               clinical decisions when they arise. Your choices shape the consultation —
+               and your debrief.</p>
+            <button id="start-btn" class="primary-btn">Begin consultation</button>
+            <p class="overlay-small">Turn your sound on — Margaret talks to you.</p>
+        </div>
+    </div>
+
+    <!-- Debrief overlay -->
+    <div id="debrief-overlay" class="overlay">
+        <div class="overlay-card debrief-card">
+            <h1>Consultation debrief</h1>
+            <div class="debrief-scoreline">
+                <span id="debrief-score" class="debrief-score"></span>
+                <span id="debrief-verdict"></span>
+            </div>
+            <div id="debrief-decisions"></div>
+            <h2>Key learning points</h2>
+            <ul id="debrief-learning"></ul>
+            <button id="restart-btn" class="primary-btn">Run the consultation again</button>
+        </div>
+    </div>
+
+    <script type="module" src="app.js"></script>
+</body>
+</html>
