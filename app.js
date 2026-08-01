@@ -94,9 +94,25 @@ function playFallbackVoice(text) {
             env = Math.max(0, Math.min(1, env + (Math.random() - 0.45) * 0.5));
             portrait.setMouth(env * 0.8);
         }, 70);
-        const done = () => { clearInterval(tick); portrait.stopSpeaking(); resolve(); };
+        let finished = false;
+        const done = () => {
+            if (finished) return;
+            finished = true;
+            clearInterval(tick);
+            clearTimeout(watchdog);
+            portrait.stopSpeaking();
+            resolve();
+        };
+        // Safari's speechSynthesis often fails to fire onend — cap the wait at a
+        // generous estimate of the line's spoken duration so we never hang.
+        const watchdog = setTimeout(done, 3000 + text.length * 90);
         utter.onend = done;
         utter.onerror = done;
+        // Safari can be stuck paused or holding a dead utterance and silently
+        // say nothing — clear stale state, but never cancel right before speak
+        // unless something is actually queued (that swallows the new line).
+        if (speechSynthesis.speaking || speechSynthesis.pending) speechSynthesis.cancel();
+        speechSynthesis.resume();
         speechSynthesis.speak(utter);
     });
 }
@@ -111,11 +127,12 @@ async function speakSentence(text) {
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ text: clean, voiceId: scenario.patient.voiceId }),
             });
-            if (resp.status === 424) {
-                state.ttsDemo = true; // not configured — fall through to browser voice
-            } else if (resp.ok) {
+            const isAudio = (resp.headers.get('content-type') || '').includes('audio');
+            if (resp.ok && isAudio) {
                 await playMp3(await resp.arrayBuffer());
                 return;
+            } else if (resp.status === 424 || resp.ok) {
+                state.ttsDemo = true; // not configured — fall through to browser voice
             } else {
                 console.warn('TTS error', resp.status);
                 return; // silent failure beats a robotic surprise mid-consult
@@ -143,10 +160,13 @@ async function drainSpeech() {
     setStatus('idle');
 }
 
-function waitForSpeechEnd() {
+// Never let a stuck voice block the consultation flow: give up waiting after
+// a bounded time and let the UI move on (the transcript is always complete).
+function waitForSpeechEnd(maxMs = 25000) {
+    const deadline = Date.now() + maxMs;
     return new Promise((resolve) => {
         (function check() {
-            if (!speaking && speakQueue.length === 0) resolve();
+            if ((!speaking && speakQueue.length === 0) || Date.now() > deadline) resolve();
             else setTimeout(check, 150);
         })();
     });

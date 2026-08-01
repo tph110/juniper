@@ -19,7 +19,9 @@ export default async function handler(req, res) {
     const apiKey = process.env.MINIMAX_API_KEY;
     const groupId = process.env.MINIMAX_GROUP_ID;
     if (!apiKey || !groupId) {
-        return res.status(424).json({ demo: true, error: 'MiniMax not configured' });
+        // Not an error: tells the browser to use its built-in voice (demo mode).
+        // 200 so it doesn't pollute production logs as a failure.
+        return res.status(200).json({ demo: true });
     }
 
     try {
