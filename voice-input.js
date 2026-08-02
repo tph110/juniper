@@ -74,7 +74,7 @@ export function createVoiceInput({ onInterim, onUtterance, isBlocked, onError })
             punctuate: 'true',
             smart_format: 'true',
             interim_results: 'true',
-            endpointing: '400',      // ms of silence that ends an utterance
+            endpointing: '180',      // ms of silence that ends an utterance
             encoding: 'linear16',
             sample_rate: String(audioContext.sampleRate),
             channels: '1',

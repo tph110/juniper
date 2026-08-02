@@ -6,6 +6,18 @@
 const MINIMAX_URL = 'https://api.minimax.io/v1/t2a_v2';
 const MODEL = process.env.TTS_MODEL || 'speech-02-turbo';
 
+// A MiniMax API key is a JWT whose payload embeds the account's GroupID.
+// Deriving it from the key means it can never mismatch (the "token not match
+// group" error) — MINIMAX_GROUP_ID is only a fallback for unusual keys.
+function groupIdFromKey(key) {
+    try {
+        const payload = JSON.parse(Buffer.from(key.split('.')[1], 'base64').toString('utf-8'));
+        return payload.GroupID || payload.group_id || null;
+    } catch {
+        return null;
+    }
+}
+
 export default async function handler(req, res) {
     if (req.method !== 'POST') {
         return res.status(405).json({ error: 'Method not allowed' });
@@ -16,8 +28,8 @@ export default async function handler(req, res) {
         return res.status(400).json({ error: 'text is required' });
     }
 
-    const apiKey = process.env.MINIMAX_API_KEY;
-    const groupId = process.env.MINIMAX_GROUP_ID;
+    const apiKey = (process.env.MINIMAX_API_KEY || '').trim();
+    const groupId = groupIdFromKey(apiKey) || (process.env.MINIMAX_GROUP_ID || '').trim();
     if (!apiKey || !groupId) {
         // Not an error: tells the browser to use its built-in voice (demo mode).
         // 200 so it doesn't pollute production logs as a failure.
@@ -37,7 +49,7 @@ export default async function handler(req, res) {
                 stream: false,
                 voice_setting: {
                     voice_id: voiceId || 'Wise_Woman',
-                    speed: 0.95,
+                    speed: 1.1,
                     vol: 1.0,
                     pitch: 0,
                 },

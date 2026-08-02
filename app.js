@@ -118,36 +118,37 @@ function playFallbackVoice(text) {
     });
 }
 
-async function speakSentence(text) {
-    const clean = text.trim();
-    if (!clean) return;
-    if (!state.ttsDemo) {
-        try {
-            const resp = await fetch('/api/tts', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ text: clean, voiceId: scenario.patient.voiceId }),
-            });
-            const isAudio = (resp.headers.get('content-type') || '').includes('audio');
-            if (resp.ok && isAudio) {
-                await playMp3(await resp.arrayBuffer());
-                return;
-            } else if (resp.status === 424 || resp.ok) {
-                state.ttsDemo = true; // not configured — fall through to browser voice
-            } else {
-                console.warn('TTS error', resp.status);
-                return; // silent failure beats a robotic surprise mid-consult
-            }
-        } catch (err) {
-            console.warn('TTS fetch failed', err);
-            return;
-        }
+// Fetches one sentence's audio. Resolves to an ArrayBuffer, or null when TTS
+// isn't configured (use the browser voice), or undefined on a hard error
+// (skip the audio silently rather than surprise the student with a robot).
+async function fetchTtsAudio(text) {
+    try {
+        const resp = await fetch('/api/tts', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text, voiceId: scenario.patient.voiceId }),
+        });
+        const isAudio = (resp.headers.get('content-type') || '').includes('audio');
+        if (resp.ok && isAudio) return await resp.arrayBuffer();
+        if (resp.status === 424 || resp.ok) { state.ttsDemo = true; return null; }
+        console.warn('TTS error', resp.status);
+        return undefined;
+    } catch (err) {
+        console.warn('TTS fetch failed', err);
+        return undefined;
     }
-    await playFallbackVoice(clean);
 }
 
+// Audio is PREFETCHED at enqueue time so sentences play back-to-back with no
+// network gap between them — the fetch for sentence 2 runs while sentence 1
+// is still playing.
 function enqueueSpeech(sentence) {
-    speakQueue.push(sentence);
+    const clean = sentence.trim();
+    if (!clean) return;
+    speakQueue.push({
+        text: clean,
+        audio: state.ttsDemo ? Promise.resolve(null) : fetchTtsAudio(clean),
+    });
     if (!speaking) drainSpeech();
 }
 
@@ -155,7 +156,13 @@ async function drainSpeech() {
     speaking = true;
     setStatus('speaking');
     while (speakQueue.length) {
-        await speakSentence(speakQueue.shift());
+        const item = speakQueue.shift();
+        const buffer = await item.audio;
+        if (buffer) {
+            try { await playMp3(buffer); continue; } catch (err) { console.warn('Audio decode failed', err); }
+        }
+        if (buffer === null) await playFallbackVoice(item.text);
+        // undefined → hard TTS error: skip this sentence's audio silently
     }
     speaking = false;
     setStatus('idle');
