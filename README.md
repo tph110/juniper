@@ -16,6 +16,7 @@ Vercel with no build step).
 |---|---|---|
 | Patient dialogue | Kimi K2.6 via OpenRouter (Western hosting) | ~free per consult |
 | Patient voice | MiniMax `speech-02-turbo` (international endpoint) | ~1–3p per consult |
+| Student voice input | Deepgram live STT (`nova-3`), streamed from the mic | ~1p per consult |
 | Patient avatar | Code-drawn SVG portrait, audio-reactive mouth via Web Audio | free |
 | Scenario engine | Authored JSON-like case files in `scenarios/` | — |
 
@@ -32,8 +33,8 @@ node dev-server.js
 ```
 
 Open http://localhost:4620. With no API keys configured the app runs in **demo
-mode**: canned patient replies and the browser's built-in voice — the full flow
-works end to end.
+mode**: canned patient replies, the browser's built-in voice, and the browser's
+built-in speech recognition for the mic — the full flow works end to end.
 
 For real AI dialogue and voice, copy `.env.example` to `.env`, fill in the keys,
 and run with:
@@ -45,8 +46,12 @@ node --env-file=.env dev-server.js
 ## Deploy
 
 Push to a Git repo and import into Vercel (framework: none, no build step).
-Set `OPENROUTER_API_KEY`, `MINIMAX_API_KEY` and `MINIMAX_GROUP_ID` in the
-project's Environment Variables.
+Set `OPENROUTER_API_KEY`, `MINIMAX_API_KEY`, `MINIMAX_GROUP_ID` and
+`DEEPGRAM_API_KEY` in the project's Environment Variables.
+
+Voice input never exposes the Deepgram key: the browser asks
+`/api/voice-token` for a short-lived access token and streams mic audio
+straight to Deepgram's live WebSocket with it.
 
 ## Adding scenarios
 
@@ -59,7 +64,8 @@ review of every scenario before release is the quality gate that matters.
 ## Roadmap
 
 - [ ] Multiple scenarios + scenario picker
-- [ ] Voice input for the student (speech-to-text)
+- [x] Voice input for the student (speech-to-text via Deepgram)
+- [ ] Barge-in: let the student interrupt the patient mid-sentence
 - [ ] TTS caching for authored lines (near-zero voice cost)
 - [ ] Accounts, progress tracking, scores across scenarios
 - [ ] Stripe subscriptions

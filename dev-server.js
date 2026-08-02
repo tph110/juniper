@@ -25,6 +25,7 @@ const MIME = {
 const apiHandlers = {
     '/api/chat': (await import('./api/chat.js')).default,
     '/api/tts': (await import('./api/tts.js')).default,
+    '/api/voice-token': (await import('./api/voice-token.js')).default,
 };
 
 function shimRes(res) {
@@ -77,4 +78,5 @@ http.createServer(async (req, res) => {
     console.log(`Juniper dev server → http://localhost:${PORT}`);
     console.log(`LLM: ${process.env.OPENROUTER_API_KEY ? 'OpenRouter (' + (process.env.LLM_MODEL || 'moonshotai/kimi-k2.6') + ')' : 'DEMO MODE (no OPENROUTER_API_KEY)'}`);
     console.log(`TTS: ${process.env.MINIMAX_API_KEY ? 'MiniMax' : 'DEMO MODE (browser voice — no MINIMAX_API_KEY)'}`);
+    console.log(`STT: ${process.env.DEEPGRAM_API_KEY ? 'Deepgram (' + (process.env.DEEPGRAM_STT_MODEL || 'nova-3') + ')' : 'DEMO MODE (browser speech recognition — no DEEPGRAM_API_KEY)'}`);
 });

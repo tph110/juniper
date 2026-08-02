@@ -1,11 +1,13 @@
 // Juniper — main consultation logic.
-// Flow: student types → /api/chat streams the patient's reply → completed
-// sentences are queued to /api/tts (MiniMax) and played through WebAudio,
-// whose live amplitude drives the portrait's mouth. If TTS isn't configured,
-// falls back to the browser's speechSynthesis with a synthetic mouth envelope.
+// Flow: student types or talks (Deepgram STT via voice.js) → /api/chat
+// streams the patient's reply → completed sentences are queued to /api/tts
+// (MiniMax) and played through WebAudio, whose live amplitude drives the
+// portrait's mouth. If TTS isn't configured, falls back to the browser's
+// speechSynthesis with a synthetic mouth envelope.
 
 import { scenario } from './scenarios/margaret-hughes.js';
 import { createPortrait } from './portrait.js';
+import { createVoiceInput } from './voice.js';
 
 // --- DOM ------------------------------------------------------------------
 const el = (id) => document.getElementById(id);
@@ -13,6 +15,8 @@ const transcriptEl = el('transcript');
 const decisionPanel = el('decision-panel');
 const inputEl = el('doctor-input');
 const sendBtn = el('send-btn');
+const micBtn = el('mic-btn');
+const voiceInterimEl = el('voice-interim');
 const examineBtn = el('examine-btn');
 const startOverlay = el('start-overlay');
 const debriefOverlay = el('debrief-overlay');
@@ -375,24 +379,56 @@ function showDebrief() {
     el('debrief-learning').innerHTML = scenario.learningPoints
         .map((p) => `<li>${p}</li>`).join('');
 
+    voice.stop(); // release the mic — the consultation is over
     debriefOverlay.classList.add('active');
 }
 
 el('restart-btn').addEventListener('click', () => window.location.reload());
 
 // --- Input ----------------------------------------------------------------
+async function sendDoctorText(text) {
+    if (!text || state.busy) return;
+    state.doctorTurnsInStage += 1;
+    await getPatientReply(text);
+}
+
 async function handleSend() {
     const text = inputEl.value.trim();
     if (!text || state.busy) return;
     inputEl.value = '';
-    state.doctorTurnsInStage += 1;
-    await getPatientReply(text);
+    await sendDoctorText(text);
 }
 
 el('input-form').addEventListener('submit', (e) => {
     e.preventDefault();
     handleSend();
 });
+
+// --- Voice input ----------------------------------------------------------
+// The mic streams continuously; echo cancellation strips the patient's own
+// voice from the capture, and anything the student says while the patient is
+// still talking is discarded — you let the patient finish, like a real room.
+const voice = createVoiceInput({
+    onInterim(text) {
+        if (state.busy || speaking) text = '';
+        voiceInterimEl.textContent = text;
+        voiceInterimEl.classList.toggle('active', !!text);
+    },
+    onUtterance(text) {
+        if (state.busy || speaking) return;
+        sendDoctorText(text);
+    },
+    onState(s, detail) {
+        micBtn.classList.toggle('listening', s === 'listening');
+        micBtn.classList.toggle('connecting', s === 'connecting');
+        micBtn.disabled = s === 'unsupported';
+        micBtn.title = (s === 'error' || s === 'unsupported') && detail
+            ? detail
+            : s === 'listening' ? 'Stop listening' : 'Talk to Margaret';
+    },
+});
+
+micBtn.addEventListener('click', () => voice.toggle());
 
 // --- Start ----------------------------------------------------------------
 el('start-btn').addEventListener('click', () => {
