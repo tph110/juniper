@@ -29,13 +29,13 @@ const SVG = `
     <clipPath id="jp-frame"><rect x="0" y="0" width="240" height="260" rx="16"/></clipPath>
   </defs>
   <g clip-path="url(#jp-frame)">
-    <rect width="240" height="260" fill="#e8eef0"/>
-    <circle cx="200" cy="40" r="70" fill="#dde7e2" opacity="0.6"/>
-    <circle cx="30" cy="220" r="90" fill="#dde7e2" opacity="0.45"/>
+    <rect width="240" height="260" fill="#edeaf3"/>
+    <circle cx="200" cy="40" r="70" fill="#dfd9ec" opacity="0.6"/>
+    <circle cx="30" cy="220" r="90" fill="#dfd9ec" opacity="0.45"/>
 
     <g id="jp-body" class="jp-breathe">
       <!-- shoulders / cardigan -->
-      <path d="M 40 260 Q 44 196 88 184 L 152 184 Q 196 196 200 260 Z" fill="#7d9b8a"/>
+      <path d="M 40 260 Q 44 196 88 184 L 152 184 Q 196 196 200 260 Z" fill="#8a7a9d"/>
       <path d="M 106 184 L 120 210 L 134 184 Q 120 196 106 184 Z" fill="#f2ede4"/>
       <!-- neck -->
       <path d="M 104 158 L 104 190 Q 120 200 136 190 L 136 158 Z" fill="#e8b48f"/>
