@@ -171,6 +171,26 @@ main {
 
 /* --- Input row ---------------------------------------------------------- */
 .input-row { display: flex; gap: 8px; padding: 12px 18px; border-top: 1px solid var(--line); }
+#mic-btn {
+    padding: 11px 14px;
+    border: 1.5px solid var(--line);
+    border-radius: 10px;
+    background: #fff;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 150ms, border-color 150ms;
+}
+#mic-btn:hover:not(:disabled) { background: var(--juniper-pale); }
+#mic-btn.listening {
+    border-color: #c0392b;
+    background: #fdf0ee;
+    animation: jp-mic-pulse 1.6s ease-in-out infinite;
+}
+#mic-btn.unavailable { opacity: 0.45; cursor: not-allowed; }
+@keyframes jp-mic-pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.35); }
+    50% { box-shadow: 0 0 0 7px rgba(192, 57, 43, 0); }
+}
 #doctor-input {
     flex: 1;
     padding: 11px 14px;

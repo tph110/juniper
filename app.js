@@ -6,6 +6,7 @@
 
 import { scenario } from './scenarios/margaret-hughes.js';
 import { createPortrait } from './portrait.js';
+import { createVoiceInput } from './voice-input.js';
 
 // --- DOM ------------------------------------------------------------------
 const el = (id) => document.getElementById(id);
@@ -393,6 +394,54 @@ el('input-form').addEventListener('submit', (e) => {
     e.preventDefault();
     handleSend();
 });
+
+// --- Voice input (talk to the patient) -------------------------------------
+const micBtn = el('mic-btn');
+
+const voice = createVoiceInput({
+    onInterim(text) {
+        // Live transcript appears in the input box as the student speaks.
+        if (voice.listening) inputEl.value = text;
+    },
+    onUtterance(text) {
+        // The student finished a phrase — send it to Margaret automatically,
+        // unless she's still replying (then leave it in the box to edit/send).
+        inputEl.value = text;
+        if (!state.busy) handleSend();
+    },
+    // Discard anything "heard" while Margaret is talking or thinking, so her
+    // own voice (or a half-distracted student) doesn't become a question.
+    isBlocked: () => speaking || state.busy,
+    onError() {
+        micBtn.classList.remove('listening');
+        micBtn.classList.add('unavailable');
+        micBtn.title = 'Microphone unavailable — check permissions';
+        inputEl.placeholder = 'Speak to Margaret… (e.g. ‘Tell me more about this tightness’)';
+    },
+});
+
+async function toggleMic() {
+    if (voice.listening) {
+        voice.stop();
+        micBtn.classList.remove('listening');
+        micBtn.title = 'Talk to Margaret';
+        return;
+    }
+    micBtn.disabled = true;
+    try {
+        await voice.start();
+        micBtn.classList.add('listening');
+        micBtn.title = 'Stop listening';
+        inputEl.placeholder = 'Listening — just talk to Margaret…';
+    } catch (err) {
+        console.error('Voice input failed:', err);
+        micBtn.classList.add('unavailable');
+        micBtn.title = 'Microphone unavailable — check permissions';
+    }
+    micBtn.disabled = false;
+}
+
+micBtn.addEventListener('click', toggleMic);
 
 // --- Start ----------------------------------------------------------------
 el('start-btn').addEventListener('click', () => {

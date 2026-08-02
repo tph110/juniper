@@ -59,7 +59,7 @@ review of every scenario before release is the quality gate that matters.
 ## Roadmap
 
 - [ ] Multiple scenarios + scenario picker
-- [ ] Voice input for the student (speech-to-text)
+- [x] Voice input for the student (Deepgram live streaming, browser fallback)
 - [ ] TTS caching for authored lines (near-zero voice cost)
 - [ ] Accounts, progress tracking, scores across scenarios
 - [ ] Stripe subscriptions
