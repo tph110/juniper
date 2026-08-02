@@ -11,7 +11,7 @@ export const scenario = {
         name: 'Margaret Hughes',
         age: 58,
         occupation: 'School receptionist',
-        voiceId: 'Wise_Woman', // MiniMax system voice
+        voiceId: 'English_Graceful_Lady', // MiniMax system voice — British accent, chosen by ear
     },
 
     // Core persona + hidden case sheet given to the LLM. The patient only
