@@ -29,6 +29,7 @@ const state = {
     examined: false,
     busy: false,
     ttsDemo: false,        // flips true once /api/tts reports it's unconfigured
+    awaitingOpening: true, // Margaret speaks only after the student greets her
 };
 
 const portrait = createPortrait(el('portrait'));
@@ -64,9 +65,31 @@ function trackAmplitude(stopSignal) {
     })();
 }
 
+// Trim near-silence from the edges of a decoded clip so consecutive clips
+// butt together naturally instead of stacking their padding into a pause.
+function trimSilence(buffer) {
+    const data = buffer.getChannelData(0);
+    const threshold = 0.012;
+    let start = 0;
+    let end = data.length - 1;
+    while (start < end && Math.abs(data[start]) < threshold) start++;
+    while (end > start && Math.abs(data[end]) < threshold) end--;
+    // Keep a whisker of padding so words don't start abruptly.
+    const pad = Math.floor(buffer.sampleRate * 0.04);
+    start = Math.max(0, start - pad);
+    end = Math.min(data.length, end + pad);
+    if (end - start < buffer.sampleRate * 0.05 || (start === 0 && end === data.length)) return buffer;
+
+    const trimmed = audioCtx.createBuffer(buffer.numberOfChannels, end - start, buffer.sampleRate);
+    for (let ch = 0; ch < buffer.numberOfChannels; ch++) {
+        trimmed.copyToChannel(buffer.getChannelData(ch).subarray(start, end), ch);
+    }
+    return trimmed;
+}
+
 async function playMp3(arrayBuffer) {
     ensureAudio();
-    const buffer = await audioCtx.decodeAudioData(arrayBuffer);
+    const buffer = trimSilence(await audioCtx.decodeAudioData(arrayBuffer));
     return new Promise((resolve) => {
         const source = audioCtx.createBufferSource();
         source.buffer = buffer;
@@ -208,8 +231,8 @@ function sayAuthoredLine(text, expression) {
     if (expression) portrait.setExpression(expression);
     state.history.push({ role: 'patient', text });
     addBubble('patient', text);
-    // Split authored lines into sentences too, so TTS chunks stay short.
-    splitSentences(text).forEach(enqueueSpeech);
+    // One clip per authored line: fewer clip boundaries = fewer pauses.
+    enqueueSpeech(text);
 }
 
 // Splits streamed text into complete sentences; returns [sentences, remainder].
@@ -234,6 +257,17 @@ function splitSentences(text) {
 }
 
 async function getPatientReply(doctorText) {
+    // First words of the consultation: the student opens, and Margaret's
+    // authored opening line is her reply — no LLM call needed.
+    if (state.awaitingOpening) {
+        state.awaitingOpening = false;
+        state.history.push({ role: 'doctor', text: doctorText });
+        addBubble('doctor', doctorText);
+        sayAuthoredLine(state.stage.patientOpening, state.stage.expression);
+        maybeShowDecision();
+        return;
+    }
+
     state.busy = true;
     setStatus('thinking');
     sendBtn.disabled = true;
@@ -245,6 +279,10 @@ async function getPatientReply(doctorText) {
     bubble.classList.add('streaming');
     let full = '';
     let pending = '';
+    // Speak the first sentence as its own clip (fast time-to-voice), then the
+    // rest of the reply as ONE clip — sentence-per-clip playback put an
+    // audible pause at every full stop.
+    let firstSpoken = false;
 
     try {
         const resp = await fetch('/api/chat', {
@@ -264,9 +302,14 @@ async function getPatientReply(doctorText) {
             pending += chunk;
             bubble.textContent = full;
             transcriptEl.scrollTop = transcriptEl.scrollHeight;
-            const [sentences, rest] = extractSentences(pending);
-            sentences.forEach(enqueueSpeech);
-            pending = rest;
+            if (!firstSpoken) {
+                const [sentences, rest] = extractSentences(pending);
+                if (sentences.length) {
+                    enqueueSpeech(sentences[0]);
+                    firstSpoken = true;
+                    pending = sentences.slice(1).join(' ') + (rest ? ' ' + rest : '');
+                }
+            }
         }
         if (pending.trim()) enqueueSpeech(pending.trim());
         if (!full.trim()) {
@@ -458,7 +501,8 @@ el('start-btn').addEventListener('click', () => {
     if ('speechSynthesis' in window) speechSynthesis.getVoices(); // warm voice list
     startOverlay.classList.remove('active');
     portrait.setExpression(state.stage.expression);
-    sayAuthoredLine(state.stage.patientOpening, null);
+    addCard('Consultation started', ['Margaret settles into the chair. Greet her when you’re ready — she’s waiting for you to begin.']);
+    inputEl.focus();
 });
 
 // Populate start card from the scenario so it always matches the content.

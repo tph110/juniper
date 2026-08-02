@@ -68,8 +68,10 @@ CHARACTER & STYLE:
             patientOpening: `Hello doctor. I feel a bit silly coming in, really — it's probably nothing. I've just been getting a bit of a tight feeling in my chest now and again.`,
             expression: 'neutral',
             // Decision appears after this many doctor turns in the stage.
+            // (The student's opening greeting is turn 1, so 3 = greeting + two
+            // real history questions.)
             decision: {
-                afterDoctorTurns: 2,
+                afterDoctorTurns: 3,
                 promptLine: `Can I ask you something, doctor... do you think it's something serious?`,
                 question: 'Margaret looks at you anxiously. How do you respond?',
                 options: [

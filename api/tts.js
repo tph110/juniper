@@ -45,7 +45,9 @@ export default async function handler(req, res) {
             },
             body: JSON.stringify({
                 model: MODEL,
-                text: text.slice(0, 2000),
+                // Em/en dashes render as long dramatic pauses in MiniMax —
+                // soften them to commas for speech (display text is untouched).
+                text: text.slice(0, 2000).replace(/\s*[—–]\s*/g, ', ').replace(/,\s*,/g, ','),
                 stream: false,
                 voice_setting: {
                     voice_id: voiceId || 'Wise_Woman',
