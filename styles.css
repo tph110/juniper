@@ -97,6 +97,21 @@ main {
 }
 .examine-btn:hover:not(:disabled) { background: var(--juniper-pale); }
 .examine-btn:disabled { opacity: 0.5; cursor: default; }
+.examine-btn.voice-paused { border-color: #b07d21; background: #fdf6e9; }
+
+.finish-btn {
+    padding: 10px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--card);
+    cursor: pointer;
+    font-size: 0.9rem;
+    color: #8a5a52;
+    transition: background 150ms, border-color 150ms;
+    margin-top: auto;
+}
+.finish-btn:hover { background: #fdf4f3; border-color: #d9b3ae; }
+.finish-btn.arming { border-color: var(--dangerous); background: #fdf0ee; color: var(--dangerous); font-weight: 650; }
 
 /* --- Consult panel ------------------------------------------------------ */
 .consult-panel {

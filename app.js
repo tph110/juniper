@@ -39,6 +39,8 @@ let audioCtx = null;
 let analyser = null;
 const speakQueue = [];
 let speaking = false;
+let muted = false;
+let currentSource = null; // the BufferSource playing right now, if any
 
 function ensureAudio() {
     if (!audioCtx) {
@@ -96,9 +98,19 @@ async function playMp3(arrayBuffer) {
         source.connect(analyser);
         const stopSignal = { stopped: false };
         trackAmplitude(stopSignal);
-        source.onended = () => { stopSignal.stopped = true; resolve(); };
+        source.onended = () => { stopSignal.stopped = true; if (currentSource === source) currentSource = null; resolve(); };
+        currentSource = source;
         source.start();
     });
+}
+
+// Immediately silence the patient: kill the playing clip and drop the queue.
+// The transcript is untouched — only the audio stops.
+function stopAllSpeech() {
+    speakQueue.length = 0;
+    if (currentSource) { try { currentSource.stop(); } catch (_) {} currentSource = null; }
+    if ('speechSynthesis' in window) speechSynthesis.cancel();
+    portrait.stopSpeaking();
 }
 
 // speechSynthesis fallback with a synthetic mouth envelope (we can't tap its
@@ -180,7 +192,9 @@ async function drainSpeech() {
     setStatus('speaking');
     while (speakQueue.length) {
         const item = speakQueue.shift();
+        if (muted) continue; // voice paused: swallow the queue, keep the text
         const buffer = await item.audio;
+        if (muted) continue;
         if (buffer) {
             try { await playMp3(buffer); continue; } catch (err) { console.warn('Audio decode failed', err); }
         }
@@ -387,6 +401,38 @@ function advanceStage(stageId) {
     if (next.patientOpening) sayAuthoredLine(next.patientOpening, null);
 }
 
+// --- Pause voice / finish consultation -------------------------------------
+const voiceBtn = el('voice-btn');
+voiceBtn.addEventListener('click', () => {
+    muted = !muted;
+    if (muted) {
+        stopAllSpeech();
+        voiceBtn.textContent = '🔇 Voice paused — resume';
+        voiceBtn.classList.add('voice-paused');
+    } else {
+        voiceBtn.textContent = '⏸️ Pause voice';
+        voiceBtn.classList.remove('voice-paused');
+    }
+});
+
+const finishBtn = el('finish-btn');
+let finishArmTimer = null;
+finishBtn.addEventListener('click', () => {
+    if (!finishBtn.classList.contains('arming')) {
+        finishBtn.classList.add('arming');
+        finishBtn.textContent = 'End now? Click again';
+        finishArmTimer = setTimeout(() => {
+            finishBtn.classList.remove('arming');
+            finishBtn.textContent = 'Finish consultation';
+        }, 4000);
+        return;
+    }
+    clearTimeout(finishArmTimer);
+    stopAllSpeech();
+    if (voice.listening) voice.stop();
+    showDebrief();
+});
+
 // --- Examination ----------------------------------------------------------
 examineBtn.addEventListener('click', () => {
     if (state.examined) return;
@@ -408,9 +454,10 @@ function showDebrief() {
     const max = state.decisions.length * 2;
     const unsafe = state.decisions.some((d) => d.option.quality === 'dangerous');
 
-    el('debrief-score').textContent = `${total} / ${max}`;
-    el('debrief-verdict').textContent = unsafe
-        ? 'One of your decisions was unsafe — read the feedback below.'
+    el('debrief-score').textContent = state.decisions.length ? `${total} / ${max}` : '—';
+    el('debrief-verdict').textContent = !state.decisions.length
+        ? 'The consultation ended before any clinical decisions were made.'
+        : unsafe ? 'One of your decisions was unsafe — read the feedback below.'
         : total === max ? 'An excellent consultation.'
         : total >= max / 2 ? 'A solid consultation with room to sharpen.'
         : 'Plenty to take away from this one.';
