@@ -183,11 +183,16 @@ export function createVoiceInput({ onInterim, onUtterance, isBlocked, onError })
                     listening = true;
                     return;
                 }
+                // Deepgram is configured but broken (bad key, wrong role…):
+                // surface the server's explanation instead of silently falling
+                // back to a worse recogniser. Only data.demo means "not set up".
+                if (data && data.error) throw new Error(data.error);
             } catch (err) {
                 cleanupDeepgram();
                 // Mic permission denied is fatal either way — don't fall through
                 // to a second permission prompt from the browser recogniser.
                 if (err && err.name === 'NotAllowedError') throw err;
+                if (err && err.message && !(err instanceof TypeError)) throw err;
             }
         }
         mode = 'browser';

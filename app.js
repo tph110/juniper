@@ -436,7 +436,9 @@ async function toggleMic() {
     } catch (err) {
         console.error('Voice input failed:', err);
         micBtn.classList.add('unavailable');
-        micBtn.title = 'Microphone unavailable — check permissions';
+        micBtn.title = err?.name === 'NotAllowedError'
+            ? 'Microphone blocked — allow it in your browser settings for this site'
+            : (err?.message || 'Voice input unavailable');
     }
     micBtn.disabled = false;
 }
