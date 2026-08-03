@@ -405,12 +405,14 @@ function advanceStage(stageId) {
 const voiceBtn = el('voice-btn');
 voiceBtn.addEventListener('click', () => {
     muted = !muted;
+    // Only the label changes — the icons live in the DOM and swap via CSS.
+    const label = voiceBtn.querySelector('.btn-label');
     if (muted) {
         stopAllSpeech();
-        voiceBtn.textContent = '🔇 Voice paused — resume';
+        label.textContent = 'Voice paused — resume';
         voiceBtn.classList.add('voice-paused');
     } else {
-        voiceBtn.textContent = '⏸️ Pause voice';
+        label.textContent = 'Pause voice';
         voiceBtn.classList.remove('voice-paused');
     }
 });

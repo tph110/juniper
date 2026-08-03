@@ -118,6 +118,10 @@ main {
 .patient-status { font-size: 0.8rem; color: var(--brand); min-height: 1.1em; margin-top: 6px; font-style: italic; }
 
 .examine-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
     padding: 10px 12px;
     border: 1px solid var(--line);
     border-radius: 11px;
@@ -130,7 +134,23 @@ main {
 }
 .examine-btn:hover:not(:disabled) { background: var(--brand-pale); border-color: var(--brand-soft); transform: translateY(-1px); }
 .examine-btn:disabled { opacity: 0.5; cursor: default; }
-.examine-btn.voice-paused { border-color: #d9a83f; background: #fdf6e9; }
+.examine-btn.voice-paused { border-color: #d9a83f; background: #fdf6e9; color: #8a6410; }
+
+/* Line icons: inherit text colour, stay crisp at any scale. */
+.btn-icon {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    color: var(--brand);
+    transition: color 150ms;
+}
+.examine-btn:disabled .btn-icon { color: var(--ink-faint); }
+.voice-paused .btn-icon { color: #b8860b; }
+
+/* Voice button swaps between speaker and muted-speaker icons. */
+.icon-voice-off { display: none; }
+.voice-paused .icon-voice-on { display: none; }
+.voice-paused .icon-voice-off { display: block; }
 
 .finish-btn {
     padding: 10px 12px;
@@ -241,21 +261,26 @@ main {
 /* --- Input row ---------------------------------------------------------- */
 .input-row { display: flex; gap: 9px; padding: 13px 20px; border-top: 1px solid var(--line); background: #fbfafd; }
 #mic-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 11px 14px;
     border: 1.5px solid var(--line);
     border-radius: 11px;
     background: #fff;
-    font-size: 1rem;
     cursor: pointer;
     transition: background 150ms, border-color 150ms;
 }
+#mic-btn .btn-icon { width: 19px; height: 19px; }
 #mic-btn:hover:not(:disabled) { background: var(--brand-pale); border-color: var(--brand-soft); }
 #mic-btn.listening {
     border-color: #c0392b;
     background: #fdf0ee;
     animation: jp-mic-pulse 1.6s ease-in-out infinite;
 }
+#mic-btn.listening .btn-icon { color: #c0392b; }
 #mic-btn.unavailable { opacity: 0.45; cursor: not-allowed; }
+#mic-btn.unavailable .btn-icon { color: var(--ink-faint); }
 @keyframes jp-mic-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.35); }
     50% { box-shadow: 0 0 0 7px rgba(192, 57, 43, 0); }
