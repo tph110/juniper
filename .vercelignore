@@ -1,0 +1,3 @@
+# Full-resolution portrait masters: kept in git for regenerating the web
+# versions, but never served, so they don't need deploying.
+portraits/source/

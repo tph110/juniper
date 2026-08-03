@@ -94,16 +94,30 @@ main {
 }
 .portrait-frame svg { display: block; width: 100%; height: auto; }
 
-.jp-breathe { animation: jp-breathe 4.2s ease-in-out infinite; }
-@keyframes jp-breathe {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-2px); }
+/* Photoreal portrait: stacked stills crossfaded to animate. */
+.portrait-photo { line-height: 0; }
+.portrait-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 707 / 768;
+    overflow: hidden;
+    transform-origin: 50% 40%;
+    animation: jp-breathe 4.6s ease-in-out infinite;
+    will-change: transform;
 }
-.jp-sway { animation: jp-sway 7s ease-in-out infinite; transform-origin: 120px 190px; }
-@keyframes jp-sway {
-    0%, 100% { transform: rotate(0deg); }
-    30% { transform: rotate(0.7deg); }
-    70% { transform: rotate(-0.6deg); }
+.portrait-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    transition: opacity 70ms linear;
+}
+
+@keyframes jp-breathe {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-1.5px) scale(1.004); }
 }
 
 .patient-info {
