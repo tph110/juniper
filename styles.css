@@ -105,6 +105,11 @@ main {
     animation: jp-breathe 4.6s ease-in-out infinite;
     will-change: transform;
 }
+.portrait-inner {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 40%;
+}
 .portrait-layer {
     position: absolute;
     inset: 0;
@@ -112,7 +117,14 @@ main {
     height: 100%;
     object-fit: cover;
     opacity: 0;
-    transition: opacity 70ms linear;
+    /* Promoted to its own layer so a crossfade never repaints the page. */
+    will-change: opacity;
+    backface-visibility: hidden;
+    transition: opacity 60ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+    .portrait-stage { animation: none; }
+    .portrait-layer { transition: none; }
 }
 
 @keyframes jp-breathe {

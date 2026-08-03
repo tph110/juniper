@@ -41,6 +41,9 @@ const speakQueue = [];
 let speaking = false;
 let muted = false;
 let currentSource = null; // the BufferSource playing right now, if any
+let audioEl = null;       // reusable <audio> element for the fallback path
+let currentAudioEl = null;
+let decodeBroken = false; // set once decodeAudioData is shown to be unusable
 
 function ensureAudio() {
     if (!audioCtx) {
@@ -89,9 +92,13 @@ function trimSilence(buffer) {
     return trimmed;
 }
 
-async function playMp3(arrayBuffer) {
+// Preferred path: decode to a buffer so we can trim edge silence and play
+// clips back-to-back with no gap.
+async function playDecoded(arrayBuffer) {
     ensureAudio();
-    const buffer = trimSilence(await audioCtx.decodeAudioData(arrayBuffer));
+    // decodeAudioData detaches the buffer it is given (even on failure), so
+    // hand it a copy — the original must survive for the fallback path.
+    const buffer = trimSilence(await audioCtx.decodeAudioData(arrayBuffer.slice(0)));
     return new Promise((resolve) => {
         const source = audioCtx.createBufferSource();
         source.buffer = buffer;
@@ -104,11 +111,68 @@ async function playMp3(arrayBuffer) {
     });
 }
 
+// Fallback path: an <audio> element uses the browser's media pipeline, which
+// is far more tolerant than decodeAudioData — Safari rejects MiniMax's MP3s
+// because of their ID3 metadata, and would otherwise play nothing at all.
+function ensureAudioElement() {
+    if (audioEl) return audioEl;
+    ensureAudio();
+    audioEl = new Audio();
+    audioEl.preload = 'auto';
+    try {
+        // Routing through the analyser keeps the mouth animation working.
+        audioCtx.createMediaElementSource(audioEl).connect(analyser);
+    } catch (err) {
+        console.warn('Audio element not routed through analyser', err);
+    }
+    return audioEl;
+}
+
+function playViaElement(arrayBuffer) {
+    const el = ensureAudioElement();
+    const url = URL.createObjectURL(new Blob([arrayBuffer], { type: 'audio/mpeg' }));
+    return new Promise((resolve) => {
+        const stopSignal = { stopped: false };
+        let settled = false;
+        const done = (ok) => {
+            if (settled) return;
+            settled = true;
+            stopSignal.stopped = true;
+            el.onended = el.onerror = null;
+            URL.revokeObjectURL(url);
+            if (currentAudioEl === el) currentAudioEl = null;
+            resolve(ok);
+        };
+        el.onended = () => done(true);
+        el.onerror = () => done(false);
+        el.src = url;
+        currentAudioEl = el;
+        trackAmplitude(stopSignal);
+        el.play().catch((err) => { console.warn('Element playback failed', err); done(false); });
+    });
+}
+
+// Returns true if the clip was actually heard, so the caller knows whether it
+// still needs to fall back to the browser's own voice.
+async function playAudio(arrayBuffer) {
+    if (!decodeBroken) {
+        try {
+            await playDecoded(arrayBuffer);
+            return true;
+        } catch (err) {
+            console.warn('decodeAudioData failed — switching to element playback', err);
+            decodeBroken = true;
+        }
+    }
+    return playViaElement(arrayBuffer);
+}
+
 // Immediately silence the patient: kill the playing clip and drop the queue.
 // The transcript is untouched — only the audio stops.
 function stopAllSpeech() {
     speakQueue.length = 0;
     if (currentSource) { try { currentSource.stop(); } catch (_) {} currentSource = null; }
+    if (currentAudioEl) { try { currentAudioEl.pause(); currentAudioEl.currentTime = 0; } catch (_) {} currentAudioEl = null; }
     if ('speechSynthesis' in window) speechSynthesis.cancel();
     portrait.stopSpeaking();
 }
@@ -196,7 +260,11 @@ async function drainSpeech() {
         const buffer = await item.audio;
         if (muted) continue;
         if (buffer) {
-            try { await playMp3(buffer); continue; } catch (err) { console.warn('Audio decode failed', err); }
+            // Never let a playback failure become silence: if neither the
+            // decoded nor the element path works, speak it in the browser voice.
+            if (await playAudio(buffer)) continue;
+            await playFallbackVoice(item.text);
+            continue;
         }
         if (buffer === null) await playFallbackVoice(item.text);
         // undefined → hard TTS error: skip this sentence's audio silently
@@ -245,8 +313,12 @@ function sayAuthoredLine(text, expression) {
     if (expression) portrait.setExpression(expression);
     state.history.push({ role: 'patient', text });
     addBubble('patient', text);
-    // One clip per authored line: fewer clip boundaries = fewer pauses.
-    enqueueSpeech(text);
+    // First sentence as its own clip so she starts speaking quickly, the rest
+    // as one clip so there are no pauses mid-line. Both are fetched in
+    // parallel, so the wait is the first sentence's synthesis, not the whole line.
+    const sentences = splitSentences(text);
+    enqueueSpeech(sentences[0]);
+    if (sentences.length > 1) enqueueSpeech(sentences.slice(1).join(' '));
 }
 
 // Splits streamed text into complete sentences; returns [sentences, remainder].

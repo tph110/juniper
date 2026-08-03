@@ -41,8 +41,15 @@ export function createPortrait(container) {
     container.innerHTML = '';
     container.classList.add('portrait-photo');
 
+    // Two nested elements on purpose: the stage carries the CSS breathing
+    // animation, the inner element carries JS-driven transforms. Sharing one
+    // element would let the animation override the inline style while still
+    // forcing a style recalculation on every frame.
     const stage = document.createElement('div');
     stage.className = 'portrait-stage';
+    const inner = document.createElement('div');
+    inner.className = 'portrait-inner';
+    stage.appendChild(inner);
     container.appendChild(stage);
 
     // One <img> per unique file, preloaded and stacked.
@@ -55,7 +62,7 @@ export function createPortrait(container) {
             img.alt = '';
             img.decoding = 'async';
             img.className = 'portrait-layer';
-            stage.appendChild(img);
+            inner.appendChild(img);
             layers.set(src, img);
         }
     }
@@ -65,6 +72,7 @@ export function createPortrait(container) {
     let smoothed = 0;
     let lastSwapAt = 0;
     let visibleSrc = null;
+    let appliedTransform = '';
 
     function show(src) {
         if (src === visibleSrc) return;
@@ -80,10 +88,16 @@ export function createPortrait(container) {
         show(src);
 
         // Expressions with no mouth frames: fake a little life while speaking.
+        // Quantised and only written when it actually changes — writing a
+        // transform every animation frame is what made this stutter.
         const faked = !set[mouth] && mouth !== 'closed';
-        stage.style.transform = faked
-            ? `scale(${(1 + smoothed * 0.012).toFixed(4)})`
-            : 'scale(1)';
+        const next = faked
+            ? `scale(${(1 + Math.round(smoothed * 20) * 0.0006).toFixed(4)})`
+            : '';
+        if (next !== appliedTransform) {
+            inner.style.transform = next;
+            appliedTransform = next;
+        }
     }
 
     // Alt text carries the patient's state for screen readers.
