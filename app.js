@@ -45,6 +45,11 @@ let audioEl = null;       // reusable <audio> element for the fallback path
 let currentAudioEl = null;
 let decodeBroken = false; // set once decodeAudioData is shown to be unusable
 
+// Readable from the console as __gpsim.audio — tells you at a glance which
+// playback path a session actually used when a voice problem is reported.
+const audioDebug = { played: 0, fellBack: 0, path: 'none' };
+window.__gpsim = { audio: audioDebug };
+
 function ensureAudio() {
     if (!audioCtx) {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -158,13 +163,16 @@ async function playAudio(arrayBuffer) {
     if (!decodeBroken) {
         try {
             await playDecoded(arrayBuffer);
+            audioDebug.path = 'decoded';
             return true;
         } catch (err) {
             console.warn('decodeAudioData failed — switching to element playback', err);
             decodeBroken = true;
         }
     }
-    return playViaElement(arrayBuffer);
+    const ok = await playViaElement(arrayBuffer);
+    audioDebug.path = ok ? 'element' : 'failed';
+    return ok;
 }
 
 // Immediately silence the patient: kill the playing clip and drop the queue.
@@ -229,12 +237,20 @@ async function fetchTtsAudio(text) {
         });
         const isAudio = (resp.headers.get('content-type') || '').includes('audio');
         if (resp.ok && isAudio) return await resp.arrayBuffer();
-        if (resp.status === 424 || resp.ok) { state.ttsDemo = true; return null; }
-        console.warn('TTS error', resp.status);
-        return undefined;
+
+        // Only an explicit {demo:true} means "TTS isn't configured". A transient
+        // failure (timeout, quota, cold start) must NOT latch the whole session
+        // into demo mode — it should cost this one clip and nothing more.
+        const body = await resp.json().catch(() => ({}));
+        if (body && body.demo) {
+            state.ttsDemo = true;
+            return null;
+        }
+        console.warn('TTS unavailable for this line', resp.status, body && body.error);
+        return null; // speak this one line with the browser voice
     } catch (err) {
         console.warn('TTS fetch failed', err);
-        return undefined;
+        return null;
     }
 }
 
@@ -259,15 +275,11 @@ async function drainSpeech() {
         if (muted) continue; // voice paused: swallow the queue, keep the text
         const buffer = await item.audio;
         if (muted) continue;
-        if (buffer) {
-            // Never let a playback failure become silence: if neither the
-            // decoded nor the element path works, speak it in the browser voice.
-            if (await playAudio(buffer)) continue;
-            await playFallbackVoice(item.text);
-            continue;
-        }
-        if (buffer === null) await playFallbackVoice(item.text);
-        // undefined → hard TTS error: skip this sentence's audio silently
+        // Never let a failure become silence: if there is no audio, or neither
+        // the decoded nor the element path can play it, use the browser voice.
+        if (buffer && await playAudio(buffer)) { audioDebug.played++; continue; }
+        audioDebug.fellBack++;
+        await playFallbackVoice(item.text);
     }
     speaking = false;
     setStatus('idle');
