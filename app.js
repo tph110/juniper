@@ -7,6 +7,7 @@
 import { scenario } from './scenarios/margaret-hughes.js';
 import { createPortrait } from './portrait.js';
 import { createVoiceInput } from './voice-input.js';
+import { textToVisemeTimeline } from './visemes.js';
 
 // --- DOM ------------------------------------------------------------------
 const el = (id) => document.getElementById(id);
@@ -60,17 +61,16 @@ function ensureAudio() {
     if (audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-function trackAmplitude(stopSignal) {
-    const data = new Uint8Array(analyser.fftSize);
+// Drives mouth shapes from a viseme timeline, using the audio's own clock so
+// the mouth stays with the sound even if playback starts late or stutters.
+function driveVisemes(timeline, getElapsed, stopSignal) {
+    if (!timeline.length) return;
+    let i = 0;
     (function loop() {
         if (stopSignal.stopped) { portrait.stopSpeaking(); return; }
-        analyser.getByteTimeDomainData(data);
-        let sum = 0;
-        for (let i = 0; i < data.length; i++) {
-            const v = (data[i] - 128) / 128;
-            sum += v * v;
-        }
-        portrait.setMouth(Math.min(1, Math.sqrt(sum / data.length) * 4.5));
+        const t = getElapsed();
+        while (i + 1 < timeline.length && timeline[i + 1].t <= t) i++;
+        portrait.setViseme(timeline[i].v);
         requestAnimationFrame(loop);
     })();
 }
@@ -99,7 +99,7 @@ function trimSilence(buffer) {
 
 // Preferred path: decode to a buffer so we can trim edge silence and play
 // clips back-to-back with no gap.
-async function playDecoded(arrayBuffer) {
+async function playDecoded(arrayBuffer, text) {
     ensureAudio();
     // decodeAudioData detaches the buffer it is given (even on failure), so
     // hand it a copy — the original must survive for the fallback path.
@@ -109,7 +109,9 @@ async function playDecoded(arrayBuffer) {
         source.buffer = buffer;
         source.connect(analyser);
         const stopSignal = { stopped: false };
-        trackAmplitude(stopSignal);
+        const startedAt = audioCtx.currentTime;
+        driveVisemes(textToVisemeTimeline(text, buffer.duration),
+            () => audioCtx.currentTime - startedAt, stopSignal);
         source.onended = () => { stopSignal.stopped = true; if (currentSource === source) currentSource = null; resolve(); };
         currentSource = source;
         source.start();
@@ -133,7 +135,7 @@ function ensureAudioElement() {
     return audioEl;
 }
 
-function playViaElement(arrayBuffer) {
+function playViaElement(arrayBuffer, text) {
     const el = ensureAudioElement();
     const url = URL.createObjectURL(new Blob([arrayBuffer], { type: 'audio/mpeg' }));
     return new Promise((resolve) => {
@@ -143,26 +145,31 @@ function playViaElement(arrayBuffer) {
             if (settled) return;
             settled = true;
             stopSignal.stopped = true;
-            el.onended = el.onerror = null;
+            el.onended = el.onerror = el.onloadedmetadata = null;
             URL.revokeObjectURL(url);
             if (currentAudioEl === el) currentAudioEl = null;
             resolve(ok);
         };
         el.onended = () => done(true);
         el.onerror = () => done(false);
+        // Duration is only known once metadata loads, so build the timeline then.
+        el.onloadedmetadata = () => {
+            if (Number.isFinite(el.duration)) {
+                driveVisemes(textToVisemeTimeline(text, el.duration), () => el.currentTime, stopSignal);
+            }
+        };
         el.src = url;
         currentAudioEl = el;
-        trackAmplitude(stopSignal);
         el.play().catch((err) => { console.warn('Element playback failed', err); done(false); });
     });
 }
 
 // Returns true if the clip was actually heard, so the caller knows whether it
 // still needs to fall back to the browser's own voice.
-async function playAudio(arrayBuffer) {
+async function playAudio(arrayBuffer, text) {
     if (!decodeBroken) {
         try {
-            await playDecoded(arrayBuffer);
+            await playDecoded(arrayBuffer, text);
             audioDebug.path = 'decoded';
             return true;
         } catch (err) {
@@ -170,7 +177,7 @@ async function playAudio(arrayBuffer) {
             decodeBroken = true;
         }
     }
-    const ok = await playViaElement(arrayBuffer);
+    const ok = await playViaElement(arrayBuffer, text);
     audioDebug.path = ok ? 'element' : 'failed';
     return ok;
 }
@@ -185,8 +192,7 @@ function stopAllSpeech() {
     portrait.stopSpeaking();
 }
 
-// speechSynthesis fallback with a synthetic mouth envelope (we can't tap its
-// audio output, so we fake a plausible amplitude while it talks).
+// speechSynthesis fallback, used when TTS isn't configured or can't be played.
 function playFallbackVoice(text) {
     return new Promise((resolve) => {
         if (!('speechSynthesis' in window)) { resolve(); return; }
@@ -197,16 +203,18 @@ function playFallbackVoice(text) {
             voices.find((v) => v.lang === 'en-GB') || null;
         utter.rate = 0.95;
         utter.pitch = 1.05;
-        let env = 0;
-        const tick = setInterval(() => {
-            env = Math.max(0, Math.min(1, env + (Math.random() - 0.45) * 0.5));
-            portrait.setMouth(env * 0.8);
-        }, 70);
+        // No audio clock to follow here, so estimate the spoken duration from
+        // the text and run the same viseme timeline against wall time.
+        const estimated = (1.2 + text.length * 0.062) / utter.rate;
+        const stopSignal = { stopped: false };
+        const startedAt = performance.now();
+        driveVisemes(textToVisemeTimeline(text, estimated),
+            () => (performance.now() - startedAt) / 1000, stopSignal);
         let finished = false;
         const done = () => {
             if (finished) return;
             finished = true;
-            clearInterval(tick);
+            stopSignal.stopped = true;
             clearTimeout(watchdog);
             portrait.stopSpeaking();
             resolve();
@@ -277,7 +285,7 @@ async function drainSpeech() {
         if (muted) continue;
         // Never let a failure become silence: if there is no audio, or neither
         // the decoded nor the element path can play it, use the browser voice.
-        if (buffer && await playAudio(buffer)) { audioDebug.played++; continue; }
+        if (buffer && await playAudio(buffer, item.text)) { audioDebug.played++; continue; }
         audioDebug.fellBack++;
         await playFallbackVoice(item.text);
     }
