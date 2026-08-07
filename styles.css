@@ -416,6 +416,12 @@ main {
 
 /* --- Debrief ------------------------------------------------------------ */
 .debrief-card { max-width: 650px; }
+
+/* The landing card is wider so the waiting-room hero has room to breathe;
+   its prose is capped separately so lines stay comfortable to read. */
+#start-overlay .overlay-card { max-width: 780px; }
+#start-overlay .overlay-card h1,
+#start-overlay .overlay-card p { max-width: 62ch; }
 .debrief-scoreline { display: flex; align-items: center; gap: 14px; margin: 12px 0 20px; }
 .debrief-score {
     font-size: 1.6rem;
