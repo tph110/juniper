@@ -20,6 +20,10 @@
     --dangerous: #b3261e;
     --shadow-sm: 0 1px 3px rgba(43, 29, 82, 0.07), 0 4px 14px rgba(43, 29, 82, 0.06);
     --shadow-lg: 0 24px 60px rgba(24, 16, 48, 0.35);
+    /* Tokenised so .overlay-hero can bleed to the card edge by negating them. */
+    --overlay-pad-y: 36px;
+    --overlay-pad-x: 40px;
+    --overlay-radius: 20px;
 }
 
 body {
@@ -94,42 +98,16 @@ main {
 }
 .portrait-frame svg { display: block; width: 100%; height: auto; }
 
-/* Photoreal portrait: stacked stills crossfaded to animate. */
-.portrait-photo { line-height: 0; }
-.portrait-stage {
-    position: relative;
-    width: 100%;
-    aspect-ratio: 707 / 768;
-    overflow: hidden;
-    transform-origin: 50% 40%;
-    animation: jp-breathe 4.6s ease-in-out infinite;
-    will-change: transform;
-}
-.portrait-inner {
-    position: absolute;
-    inset: 0;
-    transform-origin: 50% 40%;
-}
-.portrait-layer {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    opacity: 0;
-    /* Promoted to its own layer so a crossfade never repaints the page. */
-    will-change: opacity;
-    backface-visibility: hidden;
-    transition: opacity 60ms linear;
-}
-@media (prefers-reduced-motion: reduce) {
-    .portrait-stage { animation: none; }
-    .portrait-layer { transition: none; }
-}
-
+.jp-breathe { animation: jp-breathe 4.2s ease-in-out infinite; }
 @keyframes jp-breathe {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-1.5px) scale(1.004); }
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-2px); }
+}
+.jp-sway { animation: jp-sway 7s ease-in-out infinite; transform-origin: 120px 190px; }
+@keyframes jp-sway {
+    0%, 100% { transform: rotate(0deg); }
+    30% { transform: rotate(0.7deg); }
+    70% { transform: rotate(-0.6deg); }
 }
 
 .patient-info {
@@ -144,10 +122,6 @@ main {
 .patient-status { font-size: 0.8rem; color: var(--brand); min-height: 1.1em; margin-top: 6px; font-style: italic; }
 
 .examine-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 9px;
     padding: 10px 12px;
     border: 1px solid var(--line);
     border-radius: 11px;
@@ -160,23 +134,7 @@ main {
 }
 .examine-btn:hover:not(:disabled) { background: var(--brand-pale); border-color: var(--brand-soft); transform: translateY(-1px); }
 .examine-btn:disabled { opacity: 0.5; cursor: default; }
-.examine-btn.voice-paused { border-color: #d9a83f; background: #fdf6e9; color: #8a6410; }
-
-/* Line icons: inherit text colour, stay crisp at any scale. */
-.btn-icon {
-    width: 17px;
-    height: 17px;
-    flex-shrink: 0;
-    color: var(--brand);
-    transition: color 150ms;
-}
-.examine-btn:disabled .btn-icon { color: var(--ink-faint); }
-.voice-paused .btn-icon { color: #b8860b; }
-
-/* Voice button swaps between speaker and muted-speaker icons. */
-.icon-voice-off { display: none; }
-.voice-paused .icon-voice-on { display: none; }
-.voice-paused .icon-voice-off { display: block; }
+.examine-btn.voice-paused { border-color: #d9a83f; background: #fdf6e9; }
 
 .finish-btn {
     padding: 10px 12px;
@@ -287,26 +245,21 @@ main {
 /* --- Input row ---------------------------------------------------------- */
 .input-row { display: flex; gap: 9px; padding: 13px 20px; border-top: 1px solid var(--line); background: #fbfafd; }
 #mic-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
     padding: 11px 14px;
     border: 1.5px solid var(--line);
     border-radius: 11px;
     background: #fff;
+    font-size: 1rem;
     cursor: pointer;
     transition: background 150ms, border-color 150ms;
 }
-#mic-btn .btn-icon { width: 19px; height: 19px; }
 #mic-btn:hover:not(:disabled) { background: var(--brand-pale); border-color: var(--brand-soft); }
 #mic-btn.listening {
     border-color: #c0392b;
     background: #fdf0ee;
     animation: jp-mic-pulse 1.6s ease-in-out infinite;
 }
-#mic-btn.listening .btn-icon { color: #c0392b; }
 #mic-btn.unavailable { opacity: 0.45; cursor: not-allowed; }
-#mic-btn.unavailable .btn-icon { color: var(--ink-faint); }
 @keyframes jp-mic-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.35); }
     50% { box-shadow: 0 0 0 7px rgba(192, 57, 43, 0); }
@@ -351,8 +304,8 @@ main {
 .overlay.active { display: flex; }
 .overlay-card {
     background: var(--card);
-    border-radius: 20px;
-    padding: 36px 40px;
+    border-radius: var(--overlay-radius);
+    padding: var(--overlay-pad-y) var(--overlay-pad-x);
     max-width: 570px;
     width: 100%;
     max-height: 88vh;
@@ -365,6 +318,22 @@ main {
     to { opacity: 1; transform: translateY(0) scale(1); }
 }
 .overlay-brand { color: var(--brand); font-weight: 800; margin-bottom: 4px; letter-spacing: 0.01em; }
+/* Full-bleed hero: negates the card padding so the image meets the card edge. */
+.overlay-hero {
+    display: block;
+    margin: calc(var(--overlay-pad-y) * -1) calc(var(--overlay-pad-x) * -1) 20px;
+    border-radius: var(--overlay-radius) var(--overlay-radius) 0 0;
+    overflow: hidden;
+    background: var(--brand-deep); /* fills the frame while the image loads */
+    border-bottom: 1px solid var(--line);
+}
+.overlay-hero img {
+    display: block;
+    width: 100%;
+    height: auto;
+    aspect-ratio: 1140 / 636;
+    object-fit: cover;
+}
 .overlay-motto {
     font-size: 0.78rem;
     letter-spacing: 0.08em;
@@ -437,4 +406,15 @@ main {
     .patient-info { flex: 1; }
     .bubble { max-width: 90%; }
     .motto { display: none; }
+    :root { --overlay-pad-y: 26px; --overlay-pad-x: 22px; }
+}
+
+/* Short viewports: crop the hero rather than pushing "Begin consultation"
+   below the fold. Keeps the doctor and the desk sign in frame. */
+@media (max-height: 720px) {
+    .overlay-hero img {
+        aspect-ratio: auto;
+        height: 30vh;
+        object-position: center 42%;
+    }
 }
