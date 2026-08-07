@@ -98,16 +98,43 @@ main {
 }
 .portrait-frame svg { display: block; width: 100%; height: auto; }
 
-.jp-breathe { animation: jp-breathe 4.2s ease-in-out infinite; }
-@keyframes jp-breathe {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-2px); }
+/* Photoreal portrait: stacked stills crossfaded to animate. Without these
+   rules the sixteen frames render as a full-height column of photographs. */
+.portrait-photo { line-height: 0; }
+.portrait-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 707 / 768;
+    overflow: hidden;
+    transform-origin: 50% 40%;
+    animation: jp-breathe 4.6s ease-in-out infinite;
+    will-change: transform;
 }
-.jp-sway { animation: jp-sway 7s ease-in-out infinite; transform-origin: 120px 190px; }
-@keyframes jp-sway {
-    0%, 100% { transform: rotate(0deg); }
-    30% { transform: rotate(0.7deg); }
-    70% { transform: rotate(-0.6deg); }
+.portrait-inner {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 40%;
+}
+.portrait-layer {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0;
+    /* Promoted to its own layer so a crossfade never repaints the page. */
+    will-change: opacity;
+    backface-visibility: hidden;
+    transition: opacity 60ms linear;
+}
+@media (prefers-reduced-motion: reduce) {
+    .portrait-stage { animation: none; }
+    .portrait-layer { transition: none; }
+}
+
+@keyframes jp-breathe {
+    0%, 100% { transform: translateY(0) scale(1); }
+    50% { transform: translateY(-1.5px) scale(1.004); }
 }
 
 .patient-info {
@@ -122,6 +149,10 @@ main {
 .patient-status { font-size: 0.8rem; color: var(--brand); min-height: 1.1em; margin-top: 6px; font-style: italic; }
 
 .examine-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 9px;
     padding: 10px 12px;
     border: 1px solid var(--line);
     border-radius: 11px;
@@ -134,7 +165,23 @@ main {
 }
 .examine-btn:hover:not(:disabled) { background: var(--brand-pale); border-color: var(--brand-soft); transform: translateY(-1px); }
 .examine-btn:disabled { opacity: 0.5; cursor: default; }
-.examine-btn.voice-paused { border-color: #d9a83f; background: #fdf6e9; }
+.examine-btn.voice-paused { border-color: #d9a83f; background: #fdf6e9; color: #8a6410; }
+
+/* Line icons: inherit text colour, stay crisp at any scale. */
+.btn-icon {
+    width: 17px;
+    height: 17px;
+    flex-shrink: 0;
+    color: var(--brand);
+    transition: color 150ms;
+}
+.examine-btn:disabled .btn-icon { color: var(--ink-faint); }
+.voice-paused .btn-icon { color: #b8860b; }
+
+/* Voice button swaps between speaker and muted-speaker icons. */
+.icon-voice-off { display: none; }
+.voice-paused .icon-voice-on { display: none; }
+.voice-paused .icon-voice-off { display: block; }
 
 .finish-btn {
     padding: 10px 12px;
@@ -245,21 +292,26 @@ main {
 /* --- Input row ---------------------------------------------------------- */
 .input-row { display: flex; gap: 9px; padding: 13px 20px; border-top: 1px solid var(--line); background: #fbfafd; }
 #mic-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     padding: 11px 14px;
     border: 1.5px solid var(--line);
     border-radius: 11px;
     background: #fff;
-    font-size: 1rem;
     cursor: pointer;
     transition: background 150ms, border-color 150ms;
 }
+#mic-btn .btn-icon { width: 19px; height: 19px; }
 #mic-btn:hover:not(:disabled) { background: var(--brand-pale); border-color: var(--brand-soft); }
 #mic-btn.listening {
     border-color: #c0392b;
     background: #fdf0ee;
     animation: jp-mic-pulse 1.6s ease-in-out infinite;
 }
+#mic-btn.listening .btn-icon { color: #c0392b; }
 #mic-btn.unavailable { opacity: 0.45; cursor: not-allowed; }
+#mic-btn.unavailable .btn-icon { color: var(--ink-faint); }
 @keyframes jp-mic-pulse {
     0%, 100% { box-shadow: 0 0 0 0 rgba(192, 57, 43, 0.35); }
     50% { box-shadow: 0 0 0 7px rgba(192, 57, 43, 0); }

@@ -22,8 +22,27 @@
                 <div class="patient-meta" id="patient-meta"></div>
                 <div class="patient-status" id="patient-status"></div>
             </div>
-            <button id="examine-btn" class="examine-btn">🩺 Examine patient</button>
-            <button id="voice-btn" class="examine-btn">⏸️ Pause voice</button>
+            <button id="examine-btn" class="examine-btn">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.3.3 0 1 0 .2.3"/>
+                    <path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/>
+                    <circle cx="20" cy="10" r="2"/>
+                </svg>
+                <span class="btn-label">Examine patient</span>
+            </button>
+            <button id="voice-btn" class="examine-btn">
+                <svg class="btn-icon icon-voice-on" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M11 5 6 9H2v6h4l5 4z"/>
+                    <path d="M15.5 8.5a5 5 0 0 1 0 7"/>
+                    <path d="M18.5 5.5a9 9 0 0 1 0 13"/>
+                </svg>
+                <svg class="btn-icon icon-voice-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <path d="M11 5 6 9H2v6h4l5 4z"/>
+                    <path d="m22 9-6 6"/>
+                    <path d="m16 9 6 6"/>
+                </svg>
+                <span class="btn-label">Pause voice</span>
+            </button>
             <button id="finish-btn" class="finish-btn">Finish consultation</button>
         </aside>
 
@@ -31,7 +50,13 @@
             <div id="transcript" class="transcript"></div>
             <div id="decision-panel" class="decision-panel"></div>
             <form class="input-row" id="input-form">
-                <button id="mic-btn" type="button" title="Talk to Margaret" aria-label="Talk to Margaret with your voice">🎤</button>
+                <button id="mic-btn" type="button" title="Talk to Margaret" aria-label="Talk to Margaret with your voice">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <rect x="9" y="2" width="6" height="12" rx="3"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <path d="M12 19v3"/>
+                    </svg>
+                </button>
                 <input id="doctor-input" type="text" autocomplete="off"
                        placeholder="Speak to Margaret… (e.g. ‘Tell me more about this tightness’)">
                 <button id="send-btn" type="submit">Send</button>
@@ -43,7 +68,6 @@
     <div id="start-overlay" class="overlay active">
         <div class="overlay-card">
             <picture class="overlay-hero">
-                <source srcset="assets/waiting-room.webp" type="image/webp">
                 <img src="assets/waiting-room.jpg" width="1140" height="636"
                      fetchpriority="high" decoding="async"
                      alt="A tired GP standing at a surgery reception desk with a sign reading GP Simulator, a full waiting room behind him.">
