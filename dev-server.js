@@ -23,11 +23,14 @@ const MIME = {
     '.jpeg': 'image/jpeg',
     '.webp': 'image/webp',
     '.mp3': 'audio/mpeg',
+    '.mp4': 'video/mp4',
+    '.webm': 'video/webm',
 };
 
 const apiHandlers = {
     '/api/chat': (await import('./api/chat.js')).default,
     '/api/tts': (await import('./api/tts.js')).default,
+    '/api/grade': (await import('./api/grade.js')).default,
 };
 
 function shimRes(res) {

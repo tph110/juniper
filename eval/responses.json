@@ -1,0 +1,73 @@
+{
+  "_readme": [
+    "Test cases for the drill grader. Each case is a response a student might",
+    "give, plus the verdict YOU judge it deserves. Run them with:",
+    "    node dev-server.js            (in one terminal, with your .env)",
+    "    node eval/run-eval.js         (in another)",
+    "",
+    "The number that matters is false negatives — good answers marked down.",
+    "Those destroy trust in the tool faster than anything else, so weight your",
+    "test cases towards realistic PASSES, not just obvious failures.",
+    "",
+    "Add roughly 20 cases per skill before trusting the grader with students."
+  ],
+
+  "cases": [
+    {
+      "skillId": "safety-netting",
+      "exerciseId": "rhys-fever",
+      "expect": "pass",
+      "note": "Textbook answer, all criteria",
+      "response": "Yes, but let me be specific about what to watch for. Ring 999 if he develops a rash that doesn't fade when you press a glass against it, if you can't wake him properly, or if he's working hard to breathe. Ring us or 111 today if he stops drinking or has no wet nappies for eight hours, or if the fever lasts beyond five days. Can you tell me back what would make you call an ambulance?"
+    },
+    {
+      "skillId": "safety-netting",
+      "exerciseId": "rhys-fever",
+      "expect": "pass",
+      "note": "Colloquial phrasing, no jargon — must still pass",
+      "response": "Keep an eye out for a rash that doesn't go away when you press a glass on it, or if he goes floppy and you can't wake him up, or he's struggling for breath. Any of those, phone 999 straight away. If he stops drinking or he's not weeing, give us a ring the same day."
+    },
+    {
+      "skillId": "safety-netting",
+      "exerciseId": "rhys-fever",
+      "expect": "miss",
+      "note": "The classic vague non-answer",
+      "response": "Yes, just keep an eye on him and bring him back if he gets any worse."
+    },
+    {
+      "skillId": "safety-netting",
+      "exerciseId": "rhys-fever",
+      "expect": "partial",
+      "note": "Names symptoms but never says what to do",
+      "response": "Watch out for a non-blanching rash, drowsiness, or fast breathing. Those would be concerning signs in a child his age."
+    },
+    {
+      "skillId": "safety-netting",
+      "exerciseId": "daniel-headache",
+      "expect": "pass",
+      "note": "Brief but safe and specific — must not be failed for brevity",
+      "response": "Mostly, yes. But if you ever get a headache that hits you suddenly and it's the worst you've ever had, call 999 that minute. And come the same day if you get a fever with a stiff neck or a rash, or any weakness or numbness."
+    },
+    {
+      "skillId": "safety-netting",
+      "exerciseId": "daniel-headache",
+      "expect": "miss",
+      "note": "Reassurance with no safety-net at all",
+      "response": "Yes, it's almost certainly tension headache from work stress. Try to take regular breaks from the screen and keep hydrated."
+    },
+    {
+      "skillId": "safety-netting",
+      "exerciseId": "beverley-chest",
+      "expect": "pass",
+      "note": "Correct 999 threshold with timeframe and check",
+      "response": "If it comes on while you're resting, or it lasts more than ten or fifteen minutes and doesn't settle with rest or the spray, call 999 immediately and don't drive yourself. Ring us if the episodes start coming more often. What would make you dial 999?"
+    },
+    {
+      "skillId": "safety-netting",
+      "exerciseId": "beverley-chest",
+      "expect": "partial",
+      "note": "Right action, no specific threshold",
+      "response": "If you get any more chest pain before the appointment, call 999."
+    }
+  ]
+}

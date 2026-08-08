@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GP Simulator — Skills Drill</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🩺</text></svg>">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="brand">GP <em>Sim</em></div>
+        <div class="header-scenario" id="skill-title"></div>
+        <a class="nav-link" href="index.html">Full consultation →</a>
+    </header>
+
+    <main class="drill-main">
+        <aside class="skill-panel">
+            <div class="skill-card">
+                <div class="skill-eyebrow">Skill</div>
+                <h2 id="skill-name"></h2>
+                <p class="skill-blurb" id="skill-blurb"></p>
+                <div class="skill-teaching" id="skill-teaching"></div>
+            </div>
+            <div class="skill-card">
+                <div class="skill-eyebrow">You are assessed on</div>
+                <ul class="criteria-list" id="criteria-list"></ul>
+            </div>
+        </aside>
+
+        <section class="drill-panel">
+            <div class="drill-progress">
+                <span id="drill-count"></span>
+                <div class="drill-dots" id="drill-dots"></div>
+            </div>
+
+            <div class="drill-stage">
+                <div class="drill-video" id="drill-video"></div>
+                <div class="drill-context" id="drill-context"></div>
+                <div class="drill-said">
+                    <span class="drill-said-who" id="drill-who"></span>
+                    <span class="drill-said-line" id="drill-line"></span>
+                </div>
+            </div>
+
+            <div class="drill-respond" id="drill-respond">
+                <label class="drill-label" for="drill-input">Your response — say it out loud, or type it</label>
+                <div class="drill-input-row">
+                    <button id="drill-mic" type="button" title="Speak your response" aria-label="Speak your response">
+                        <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                            <rect x="9" y="2" width="6" height="12" rx="3"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <path d="M12 19v3"/>
+                        </svg>
+                    </button>
+                    <textarea id="drill-input" rows="3" placeholder="e.g. “If he develops a rash that doesn’t fade when you press a glass on it…”"></textarea>
+                </div>
+                <button id="drill-submit" class="primary-btn">Submit response</button>
+            </div>
+
+            <div class="drill-result" id="drill-result"></div>
+        </section>
+    </main>
+
+    <script type="module" src="drills.js"></script>
+</body>
+</html>

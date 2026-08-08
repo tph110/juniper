@@ -48,6 +48,35 @@ Push to a Git repo and import into Vercel (framework: none, no build step).
 Set `OPENROUTER_API_KEY`, `MINIMAX_API_KEY` and `MINIMAX_GROUP_ID` in the
 project's Environment Variables.
 
+## Two modes
+
+**Full consultation** (`index.html`) — whole-task simulation. A branching
+consultation with an AI patient, authored decision points and a scored debrief.
+
+**Skills drill** (`drills.html`) — deliberate practice. One authored patient
+line, one response from the student, immediate criterion-by-criterion feedback.
+Because the patient never improvises, each line is a pre-rendered video, which
+is what affords the non-verbal detail a still portrait can't show.
+
+Drop clips into `drills/<skill-id>/<exercise-id>.mp4`; until one exists the
+exercise falls back to a placeholder card and stays fully usable. Each exercise
+carries the `videoPrompt` used to generate it.
+
+### Trusting the grader
+
+The grader marks each criterion separately and must quote the student's own
+words as evidence, which is the main guard against invented judgements. Before
+letting it near students, measure it:
+
+```
+node --env-file=.env dev-server.js     # terminal 1
+node eval/run-eval.js                  # terminal 2
+```
+
+Add ~20 hand-marked responses per skill to `eval/responses.json`. The number
+that matters is **false negatives** — good answers marked down. A trainee told
+their correct answer was wrong does not come back, so that count should be zero.
+
 ## Adding scenarios
 
 Copy `scenarios/margaret-hughes.js` and edit: the `caseSheet` (patient persona +
