@@ -53,14 +53,22 @@ project's Environment Variables.
 **Full consultation** (`index.html`) — whole-task simulation. A branching
 consultation with an AI patient, authored decision points and a scored debrief.
 
-**Skills drill** (`drills.html`) — deliberate practice. One authored patient
-line, one response from the student, immediate criterion-by-criterion feedback.
-Because the patient never improvises, each line is a pre-rendered video, which
-is what affords the non-verbal detail a still portrait can't show.
+**Skills drill** (`drills.html`) — deliberate practice. Each exercise is a
+two-turn exchange: the patient speaks, the student responds, the patient pushes
+back, the student responds again. The second turn is where the learning is — a
+single exchange lets a trainee recite a safety-net without ever being asked to
+make it concrete. Because the patient's lines are fixed regardless of what the
+student says, every clip is pre-rendered, which affords the non-verbal detail a
+still portrait can't show.
 
-Drop clips into `drills/<skill-id>/<exercise-id>.mp4`; until one exists the
-exercise falls back to a placeholder card and stays fully usable. Each exercise
-carries the `videoPrompt` used to generate it.
+Drop clips into `drills/<skill-id>/<exercise-id>-<turn>.mp4` (e.g.
+`drills/safety-netting/rhys-fever-1.mp4`); until one exists the turn falls back
+to a placeholder card and stays fully usable. Each turn carries the
+`videoPrompt` used to generate it — first-person, so the camera is the doctor.
+
+A turn may narrow the criteria it is marked against via `criteriaIds`: a
+follow-up usually tests one specific thing, and marking it against the full
+list would fail good answers for omitting content the patient didn't ask for.
 
 ### Trusting the grader
 

@@ -545,6 +545,19 @@ main {
 .dot.done.partial { background: var(--okay); }
 .dot.done.miss { background: var(--dangerous); }
 
+.drill-history { display: flex; flex-direction: column; gap: 8px; }
+.history-turn {
+    border-left: 3px solid var(--brand-soft);
+    padding: 2px 0 2px 12px;
+    font-size: 0.84rem;
+    line-height: 1.5;
+}
+.history-patient { color: var(--ink-soft); font-style: italic; }
+.history-you { color: #40394f; margin-top: 2px; }
+.history-you span { font-weight: 650; color: var(--brand); }
+
+.criteria-list li.dimmed { opacity: 0.38; }
+
 .drill-video {
     border-radius: 14px;
     overflow: hidden;

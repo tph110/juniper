@@ -30,7 +30,13 @@ for (const [i, c] of cases.entries()) {
         const resp = await fetch(`${BASE}/api/grade`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ skillId: c.skillId, exerciseId: c.exerciseId, response: c.response }),
+            body: JSON.stringify({
+                skillId: c.skillId,
+                exerciseId: c.exerciseId,
+                turnId: c.turnId,
+                response: c.response,
+                priorTurns: c.priorTurns || [],
+            }),
         });
         const data = await resp.json();
         if (!resp.ok) throw new Error(data.error || `HTTP ${resp.status}`);

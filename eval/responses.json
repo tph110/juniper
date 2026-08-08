@@ -2,72 +2,91 @@
   "_readme": [
     "Test cases for the drill grader. Each case is a response a student might",
     "give, plus the verdict YOU judge it deserves. Run them with:",
-    "    node dev-server.js            (in one terminal, with your .env)",
-    "    node eval/run-eval.js         (in another)",
+    "    node --env-file=.env dev-server.js    (terminal 1)",
+    "    node eval/run-eval.js                 (terminal 2)",
     "",
     "The number that matters is false negatives — good answers marked down.",
     "Those destroy trust in the tool faster than anything else, so weight your",
-    "test cases towards realistic PASSES, not just obvious failures.",
+    "cases towards realistic PASSES, not just obvious failures.",
+    "",
+    "Second turns (t2) are marked against a narrowed set of criteria, so a",
+    "good t2 answer does NOT need to repeat the symptoms named in t1.",
     "",
     "Add roughly 20 cases per skill before trusting the grader with students."
   ],
 
   "cases": [
     {
-      "skillId": "safety-netting",
-      "exerciseId": "rhys-fever",
+      "skillId": "safety-netting", "exerciseId": "rhys-fever", "turnId": "t1",
       "expect": "pass",
       "note": "Textbook answer, all criteria",
       "response": "Yes, but let me be specific about what to watch for. Ring 999 if he develops a rash that doesn't fade when you press a glass against it, if you can't wake him properly, or if he's working hard to breathe. Ring us or 111 today if he stops drinking or has no wet nappies for eight hours, or if the fever lasts beyond five days. Can you tell me back what would make you call an ambulance?"
     },
     {
-      "skillId": "safety-netting",
-      "exerciseId": "rhys-fever",
+      "skillId": "safety-netting", "exerciseId": "rhys-fever", "turnId": "t1",
       "expect": "pass",
       "note": "Colloquial phrasing, no jargon — must still pass",
       "response": "Keep an eye out for a rash that doesn't go away when you press a glass on it, or if he goes floppy and you can't wake him up, or he's struggling for breath. Any of those, phone 999 straight away. If he stops drinking or he's not weeing, give us a ring the same day."
     },
     {
-      "skillId": "safety-netting",
-      "exerciseId": "rhys-fever",
+      "skillId": "safety-netting", "exerciseId": "rhys-fever", "turnId": "t1",
       "expect": "miss",
       "note": "The classic vague non-answer",
       "response": "Yes, just keep an eye on him and bring him back if he gets any worse."
     },
     {
-      "skillId": "safety-netting",
-      "exerciseId": "rhys-fever",
+      "skillId": "safety-netting", "exerciseId": "rhys-fever", "turnId": "t1",
       "expect": "partial",
       "note": "Names symptoms but never says what to do",
       "response": "Watch out for a non-blanching rash, drowsiness, or fast breathing. Those would be concerning signs in a child his age."
     },
     {
-      "skillId": "safety-netting",
-      "exerciseId": "daniel-headache",
+      "skillId": "safety-netting", "exerciseId": "rhys-fever", "turnId": "t2",
+      "expect": "pass",
+      "note": "Gives a default route and permission to call — must not be failed for not re-listing symptoms",
+      "response": "Please call anyway. If you're worried that's reason enough, and you won't be wasting anyone's time with a two-year-old. Ring us in the day, 111 in the evening. Does that feel clear enough to act on tonight?"
+    },
+    {
+      "skillId": "safety-netting", "exerciseId": "rhys-fever", "turnId": "t2",
+      "expect": "miss",
+      "note": "Reassures her feelings but gives no route",
+      "response": "Don't worry about that, you're not wasting anyone's time at all. Parents know their children best."
+    },
+    {
+      "skillId": "safety-netting", "exerciseId": "daniel-headache", "turnId": "t1",
       "expect": "pass",
       "note": "Brief but safe and specific — must not be failed for brevity",
       "response": "Mostly, yes. But if you ever get a headache that hits you suddenly and it's the worst you've ever had, call 999 that minute. And come the same day if you get a fever with a stiff neck or a rash, or any weakness or numbness."
     },
     {
-      "skillId": "safety-netting",
-      "exerciseId": "daniel-headache",
+      "skillId": "safety-netting", "exerciseId": "daniel-headache", "turnId": "t1",
       "expect": "miss",
       "note": "Reassurance with no safety-net at all",
       "response": "Yes, it's almost certainly tension headache from work stress. Try to take regular breaks from the screen and keep hydrated."
     },
     {
-      "skillId": "safety-netting",
-      "exerciseId": "beverley-chest",
+      "skillId": "safety-netting", "exerciseId": "daniel-headache", "turnId": "t2",
       "expect": "pass",
-      "note": "Correct 999 threshold with timeframe and check",
-      "response": "If it comes on while you're resting, or it lasts more than ten or fifteen minutes and doesn't settle with rest or the spray, call 999 immediately and don't drive yourself. Ring us if the episodes start coming more often. What would make you dial 999?"
+      "note": "Review interval plus the override for urgent symptoms",
+      "response": "Give it four weeks and book a review then. But don't wait if anything changes — same day for a fever with a stiff neck or any weakness, and 999 for a sudden worst-ever headache."
     },
     {
-      "skillId": "safety-netting",
-      "exerciseId": "beverley-chest",
+      "skillId": "safety-netting", "exerciseId": "beverley-chest", "turnId": "t1",
+      "expect": "pass",
+      "note": "Correct 999 threshold with timeframe",
+      "response": "If it comes on while you're resting, or it lasts more than ten or fifteen minutes and doesn't settle with rest or the spray, call 999 immediately and don't drive yourself."
+    },
+    {
+      "skillId": "safety-netting", "exerciseId": "beverley-chest", "turnId": "t1",
       "expect": "partial",
       "note": "Right action, no specific threshold",
       "response": "If you get any more chest pain before the appointment, call 999."
+    },
+    {
+      "skillId": "safety-netting", "exerciseId": "beverley-chest", "turnId": "t2",
+      "expect": "pass",
+      "note": "Correct GTN protocol",
+      "response": "Sit down and take a second dose after five minutes. If it's still there five minutes after that second dose, ring 999 straight away even if it's starting to ease. Don't drive yourself."
     }
   ]
 }

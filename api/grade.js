@@ -15,17 +15,25 @@
 // With no OPENROUTER_API_KEY set, falls back to keyword matching so the mode
 // is usable (and demonstrable) without keys, like the rest of the app.
 
-import { skill as safetyNetting } from '../drills/safety-netting.js';
+import { skill as safetyNetting, criteriaForTurn } from '../drills/safety-netting.js';
 
 const SKILLS = { 'safety-netting': safetyNetting };
 
 const OPENROUTER_URL = 'https://openrouter.ai/api/v1/chat/completions';
 const MODEL = process.env.GRADER_MODEL || process.env.LLM_MODEL || 'moonshotai/kimi-k2.6';
 
-function buildPrompt(skill, exercise, response) {
-    const criteria = skill.criteria
+function buildPrompt(skill, exercise, turn, criteria, response, priorTurns) {
+    const criteriaText = criteria
         .map((c) => `- id "${c.id}"${c.essential ? ' (ESSENTIAL)' : ''}: ${c.label}`)
         .join('\n');
+
+    // Later turns are follow-ups: the trainee has already said things, and it
+    // would be unfair to mark them down for not repeating themselves.
+    const history = priorTurns.length
+        ? `\nEARLIER IN THIS EXCHANGE (do not re-mark, but do not penalise the trainee for not repeating it):\n${priorTurns
+              .map((p) => `Patient: "${p.line}"\nTrainee: "${p.response}"`)
+              .join('\n')}\n`
+        : '';
 
     return `You are assessing a UK GP trainee practising a single clinical communication skill: ${skill.title}.
 
@@ -34,18 +42,18 @@ ${skill.teaching}
 
 THE CLINICAL SITUATION:
 ${exercise.context}
-
+${history}
 THE PATIENT SAID:
-"${exercise.patientLine}"
+"${turn.line}"
 
 A STRONG MODEL ANSWER (for calibration only — the trainee does NOT have to match its wording or cover everything in it):
-"${exercise.exemplar}"
+"${turn.exemplar}"
 
 THE TRAINEE'S ACTUAL RESPONSE:
 "${response}"
 
-CRITERIA TO ASSESS:
-${criteria}
+CRITERIA TO ASSESS — assess ONLY these, ignore anything else the skill involves:
+${criteriaText}
 
 HOW TO JUDGE:
 - Judge each criterion separately. For every criterion you mark met, quote the trainee's own words as evidence. If you cannot quote them, it is not met.
@@ -85,16 +93,16 @@ function extractJson(text) {
 
 // Keyword fallback so the drill works without an API key. Crude on purpose —
 // it exists to demonstrate the flow, not to assess anyone.
-function gradeByKeyword(skill, response) {
+function gradeByKeyword(activeCriteria, response) {
     const text = (response || '').toLowerCase();
-    const criteria = skill.criteria.map((c) => {
+    const criteria = activeCriteria.map((c) => {
         const hit = (c.demoKeywords || []).find((k) => text.includes(k));
         return { id: c.id, met: Boolean(hit), evidence: hit || '' };
     });
-    const essentialMet = skill.criteria
+    const essentialMet = activeCriteria
         .filter((c) => c.essential)
         .every((c) => criteria.find((x) => x.id === c.id)?.met);
-    const anyEssential = skill.criteria
+    const anyEssential = activeCriteria
         .filter((c) => c.essential)
         .some((c) => criteria.find((x) => x.id === c.id)?.met);
 
@@ -109,9 +117,9 @@ function gradeByKeyword(skill, response) {
 
 // Ensure the response is shaped correctly whatever the model returned, so the
 // UI never has to defend against a malformed grade.
-function normalise(raw, skill) {
+function normalise(raw, activeCriteria) {
     const byId = new Map((raw?.criteria || []).map((c) => [c.id, c]));
-    const criteria = skill.criteria.map((c) => {
+    const criteria = activeCriteria.map((c) => {
         const got = byId.get(c.id);
         return {
             id: c.id,
@@ -121,7 +129,7 @@ function normalise(raw, skill) {
     });
     // Recompute the verdict from the criteria rather than trusting the model's
     // own summary — the two occasionally disagree.
-    const essential = skill.criteria.filter((c) => c.essential);
+    const essential = activeCriteria.filter((c) => c.essential);
     const metEssential = essential.filter((c) => criteria.find((x) => x.id === c.id)?.met);
     const verdict = metEssential.length === essential.length ? 'pass'
         : metEssential.length > 0 ? 'partial' : 'miss';
@@ -139,19 +147,22 @@ export default async function handler(req, res) {
         return res.status(405).json({ error: 'Method not allowed' });
     }
 
-    const { skillId, exerciseId, response } = req.body || {};
+    const { skillId, exerciseId, turnId, response, priorTurns } = req.body || {};
     const skill = SKILLS[skillId];
     const exercise = skill?.exercises.find((e) => e.id === exerciseId);
-    if (!skill || !exercise) {
-        return res.status(400).json({ error: 'Unknown skill or exercise' });
+    const turn = exercise?.turns.find((t) => t.id === turnId);
+    if (!skill || !exercise || !turn) {
+        return res.status(400).json({ error: 'Unknown skill, exercise or turn' });
     }
     if (!response || !response.trim()) {
         return res.status(400).json({ error: 'No response to grade' });
     }
 
+    const activeCriteria = criteriaForTurn(turn);
+
     const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
-        return res.status(200).json(gradeByKeyword(skill, response));
+        return res.status(200).json(gradeByKeyword(activeCriteria, response));
     }
 
     try {
@@ -160,7 +171,11 @@ export default async function handler(req, res) {
             headers: { 'Authorization': `Bearer ${apiKey}`, 'Content-Type': 'application/json' },
             body: JSON.stringify({
                 model: MODEL,
-                messages: [{ role: 'user', content: buildPrompt(skill, exercise, response) }],
+                messages: [{
+                    role: 'user',
+                    content: buildPrompt(skill, exercise, turn, activeCriteria, response,
+                        Array.isArray(priorTurns) ? priorTurns : []),
+                }],
                 // Low temperature: the same answer should get the same grade.
                 temperature: 0.1,
                 max_tokens: 900,
@@ -181,7 +196,7 @@ export default async function handler(req, res) {
             return res.status(502).json({ error: 'Grading is unavailable right now. Please try again.' });
         }
 
-        return res.status(200).json(normalise(parsed, skill));
+        return res.status(200).json(normalise(parsed, activeCriteria));
     } catch (err) {
         console.error('Grade handler error:', err);
         return res.status(502).json({ error: 'Grading is unavailable right now. Please try again.' });

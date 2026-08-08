@@ -1,18 +1,21 @@
 // GP Sim — skills drill mode.
 //
-// Deliberate practice rather than whole-consultation simulation: one authored
-// patient line, one response from the student, immediate criterion-by-criterion
-// feedback. No LLM roleplay and no TTS at runtime — the patient's line is a
-// pre-rendered video (or, until one exists, the line rendered as text).
+// Deliberate practice rather than whole-consultation simulation. Each exercise
+// is a short two-turn exchange: the patient speaks an authored line, the
+// student responds, the patient pushes back, the student responds again. The
+// patient's lines are fixed regardless of what the student says, so every clip
+// is pre-rendered — no LLM roleplay and no TTS at runtime.
 
-import { skill } from './drills/safety-netting.js';
+import { skill, criteriaForTurn } from './drills/safety-netting.js';
 import { createVoiceInput } from './voice-input.js';
 
 const el = (id) => document.getElementById(id);
 
 const state = {
-    index: 0,
-    results: [],      // one entry per exercise: 'pass' | 'partial' | 'miss'
+    exercise: 0,
+    turn: 0,
+    verdicts: [],     // verdicts[exercise][turn] — first attempt only
+    history: [],      // prior turns of the CURRENT exercise: {line, response}
     grading: false,
     attempts: 0,
 };
@@ -29,37 +32,45 @@ el('criteria-list').innerHTML = skill.criteria
     .map((c) => `<li${c.essential ? ' class="essential"' : ''}>${c.label}${c.essential ? '<span class="req">required</span>' : ''}</li>`)
     .join('');
 
-// --- Exercise rendering ----------------------------------------------------
-function currentExercise() {
-    return skill.exercises[state.index];
-}
+const currentExercise = () => skill.exercises[state.exercise];
+const currentTurn = () => currentExercise().turns[state.turn];
 
-// showCurrent is false on the summary screen, where no exercise is active.
+// --- Rendering -------------------------------------------------------------
 function renderProgress(showCurrent = true) {
+    const ex = currentExercise();
     el('drill-count').textContent = showCurrent
-        ? `Exercise ${state.index + 1} of ${skill.exercises.length}`
+        ? `Exercise ${state.exercise + 1} of ${skill.exercises.length} · turn ${state.turn + 1} of ${ex.turns.length}`
         : 'Complete';
     el('drill-dots').innerHTML = skill.exercises
         .map((_, i) => {
-            const done = state.results[i];
-            const cls = showCurrent && i === state.index ? 'current' : done ? `done ${done}` : '';
+            const done = exerciseVerdict(i);
+            const cls = showCurrent && i === state.exercise ? 'current' : done ? `done ${done}` : '';
             return `<span class="dot ${cls}"></span>`;
         })
         .join('');
 }
 
-function renderExercise() {
+// An exercise is only a pass if every turn in it passed.
+function exerciseVerdict(i) {
+    const turns = state.verdicts[i];
+    if (!turns || turns.length < skill.exercises[i].turns.length || turns.some((v) => !v)) return null;
+    if (turns.every((v) => v === 'pass')) return 'pass';
+    if (turns.some((v) => v === 'pass' || v === 'partial')) return 'partial';
+    return 'miss';
+}
+
+function renderTurn() {
     const ex = currentExercise();
+    const turn = currentTurn();
     state.attempts = 0;
     document.querySelector('.drill-stage').hidden = false;
     renderProgress();
 
-    // Video if it exists, otherwise a placeholder carrying the same information
-    // so the mode is fully usable before any clips are generated.
-    const video = el('drill-video');
-    video.innerHTML = `
-        <video id="drill-clip" playsinline preload="auto" poster="">
-            <source src="${ex.video}" type="video/mp4">
+    // Video if the clip exists, otherwise a placeholder carrying the same
+    // information so the mode is fully usable before anything is generated.
+    el('drill-video').innerHTML = `
+        <video id="drill-clip" playsinline preload="auto">
+            <source src="${turn.video}" type="video/mp4">
         </video>
         <div class="drill-video-fallback" id="drill-fallback" hidden>
             <div class="fallback-badge">Video not generated yet</div>
@@ -68,19 +79,41 @@ function renderExercise() {
 
     const clip = el('drill-clip');
     clip.addEventListener('error', showFallback, { once: true });
-    // A source that 404s fires error on the <source>, not always the <video>.
     clip.querySelector('source').addEventListener('error', showFallback, { once: true });
-    clip.addEventListener('loadeddata', () => { clip.classList.add('ready'); clip.play().catch(() => {}); }, { once: true });
+    clip.addEventListener('loadeddata', () => {
+        clip.classList.add('ready');
+        clip.play().catch(() => {});
+    }, { once: true });
 
     el('drill-context').textContent = ex.context;
     el('drill-who').textContent = `${ex.patient}:`;
-    el('drill-line').textContent = `“${ex.patientLine}”`;
+    el('drill-line').textContent = `“${turn.line}”`;
+    renderHistory();
+
+    // Only mark against the criteria this turn actually tests.
+    const active = criteriaForTurn(turn).map((c) => c.id);
+    document.querySelectorAll('#criteria-list li').forEach((li, i) => {
+        li.classList.toggle('dimmed', !active.includes(skill.criteria[i].id));
+    });
 
     el('drill-input').value = '';
     el('drill-result').innerHTML = '';
     el('drill-respond').hidden = false;
     el('drill-submit').disabled = false;
     el('drill-submit').textContent = 'Submit response';
+}
+
+// The earlier turn stays on screen so the student can see what they already
+// said — and so they aren't puzzled by a follow-up with no context.
+function renderHistory() {
+    const box = el('drill-history');
+    if (!state.history.length) { box.hidden = true; box.innerHTML = ''; return; }
+    box.hidden = false;
+    box.innerHTML = state.history.map((h) => `
+        <div class="history-turn">
+            <div class="history-patient">“${h.line}”</div>
+            <div class="history-you"><span>You said:</span> ${h.response}</div>
+        </div>`).join('');
 }
 
 function showFallback() {
@@ -111,11 +144,17 @@ async function submit() {
         const resp = await fetch('/api/grade', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ skillId: skill.id, exerciseId: currentExercise().id, response }),
+            body: JSON.stringify({
+                skillId: skill.id,
+                exerciseId: currentExercise().id,
+                turnId: currentTurn().id,
+                response,
+                priorTurns: state.history,
+            }),
         });
         const data = await resp.json().catch(() => ({}));
         if (!resp.ok) throw new Error(data.error || `Grading failed (${resp.status})`);
-        renderResult(data);
+        renderResult(data, response);
     } catch (err) {
         console.error(err);
         el('drill-result').innerHTML = `<div class="drill-error">${err.message}</div>`;
@@ -126,16 +165,22 @@ async function submit() {
     }
 }
 
-function renderResult(data) {
+function renderResult(data, response) {
     const v = VERDICT[data.verdict] || VERDICT.miss;
-    const isLast = state.index === skill.exercises.length - 1;
+    const ex = currentExercise();
+    const turn = currentTurn();
+    const lastTurn = state.turn === ex.turns.length - 1;
+    const lastExercise = state.exercise === skill.exercises.length - 1;
 
-    // Only record the first attempt, so the progress dots reflect performance
-    // rather than persistence.
-    if (state.attempts === 1) state.results[state.index] = data.verdict;
+    // Record the first attempt only, so progress reflects performance rather
+    // than persistence.
+    if (state.attempts === 1) {
+        state.verdicts[state.exercise] = state.verdicts[state.exercise] || [];
+        state.verdicts[state.exercise][state.turn] = data.verdict;
+    }
     renderProgress();
 
-    const criteriaHtml = skill.criteria.map((c) => {
+    const criteriaHtml = criteriaForTurn(turn).map((c) => {
         const got = data.criteria.find((x) => x.id === c.id) || { met: false, evidence: '' };
         return `<li class="${got.met ? 'met' : 'unmet'}">
             <span class="tick">${got.met ? '✓' : '·'}</span>
@@ -143,6 +188,9 @@ function renderResult(data) {
             ${got.evidence ? `<span class="crit-evidence">“${got.evidence}”</span>` : ''}
         </li>`;
     }).join('');
+
+    const nextLabel = !lastTurn ? 'Continue — she replies'
+        : lastExercise ? 'See summary' : 'Next exercise';
 
     el('drill-result').innerHTML = `
         <div class="drill-verdict ${v.cls}">${v.label}</div>
@@ -152,17 +200,17 @@ function renderResult(data) {
         ${data.hint ? `<p class="drill-hint"><strong>Hint:</strong> ${data.hint}</p>` : ''}
         <div class="drill-actions">
             ${data.verdict !== 'pass' ? '<button class="secondary-btn" id="retry-btn">Try this one again</button>' : ''}
-            <button class="primary-btn" id="next-btn">${isLast ? 'See summary' : 'Next exercise'}</button>
+            <button class="primary-btn" id="next-btn">${nextLabel}</button>
             <button class="link-btn" id="model-btn">Show a model answer</button>
         </div>
         <div class="drill-model" id="drill-model" hidden>
             <div class="skill-eyebrow">Model answer</div>
-            <p>${currentExercise().exemplar}</p>
+            <p>${turn.exemplar}</p>
         </div>`;
 
     el('drill-respond').hidden = true;
 
-    el('next-btn').addEventListener('click', next);
+    el('next-btn').addEventListener('click', () => advance(response));
     el('model-btn').addEventListener('click', () => {
         const box = el('drill-model');
         box.hidden = !box.hidden;
@@ -180,18 +228,26 @@ function renderResult(data) {
     }
 }
 
-function next() {
-    if (state.index < skill.exercises.length - 1) {
-        state.index += 1;
-        renderExercise();
+function advance(response) {
+    const ex = currentExercise();
+    if (state.turn < ex.turns.length - 1) {
+        state.history.push({ line: currentTurn().line, response });
+        state.turn += 1;
+        renderTurn();
+        return;
+    }
+    if (state.exercise < skill.exercises.length - 1) {
+        state.exercise += 1;
+        state.turn = 0;
+        state.history = [];
+        renderTurn();
         return;
     }
     renderSummary();
 }
 
 function renderSummary() {
-    const counts = state.results.reduce((acc, v) => { acc[v] = (acc[v] || 0) + 1; return acc; }, {});
-    const passed = counts.pass || 0;
+    const passed = skill.exercises.filter((_, i) => exerciseVerdict(i) === 'pass').length;
     document.querySelector('.drill-stage').hidden = true;
     el('drill-respond').hidden = true;
     renderProgress(false);
@@ -200,17 +256,19 @@ function renderSummary() {
             <h2>${skill.title} — practice complete</h2>
             <div class="summary-score">${passed} / ${skill.exercises.length}</div>
             <p>${passed === skill.exercises.length
-                ? 'Every response met the standard first time. Try the full consultation to use this under pressure.'
-                : 'Scored on your first attempt at each exercise. Repetition is the point — run it again.'}</p>
+                ? 'Every turn met the standard first time. Try the full consultation to use this under pressure.'
+                : 'An exercise counts as passed only if both turns passed first time. Repetition is the point — run it again.'}</p>
             <div class="drill-actions">
                 <button class="primary-btn" id="restart-drill">Practise again</button>
                 <a class="link-btn" href="index.html">Back to the full consultation</a>
             </div>
         </div>`;
     el('restart-drill').addEventListener('click', () => {
-        state.index = 0;
-        state.results = [];
-        renderExercise();
+        state.exercise = 0;
+        state.turn = 0;
+        state.verdicts = [];
+        state.history = [];
+        renderTurn();
     });
 }
 
@@ -219,8 +277,8 @@ const micBtn = el('drill-mic');
 const voice = createVoiceInput({
     onInterim(text) { if (voice.listening && text) el('drill-input').value = text; },
     onUtterance(text) {
-        // Drill responses are often several sentences, so accumulate rather
-        // than auto-submitting on the first pause.
+        // Drill responses run to several sentences, so accumulate rather than
+        // auto-submitting at the first pause.
         const box = el('drill-input');
         box.value = (box.value ? box.value.replace(/\s*$/, ' ') : '') + text;
     },
@@ -256,4 +314,4 @@ el('drill-input').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) { e.preventDefault(); submit(); }
 });
 
-renderExercise();
+renderTurn();
