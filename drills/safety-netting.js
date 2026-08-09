@@ -68,9 +68,15 @@ Vague advice — "come back if it gets worse" — is not safety-netting. The pat
                 {
                     id: 't1',
                     video: 'drills/safety-netting/rhys-fever-1.mp4',
-                    line: 'So I just keep an eye on him then?',
+                    line: 'Thanks for checking him out. So I just keep an eye on him then?',
                     exemplar: `Yes — but I want you to know exactly what to look for. Ring 999 if he develops a rash that does not fade when you press a glass against it, if he becomes floppy or you cannot wake him properly, or if he is struggling to breathe. Contact us or 111 today if he stops drinking, has no wet nappies for eight hours, or if the fever is still there after five days. Can you tell me what you would do if that rash appeared?`,
-                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A worried woman in her early thirties sits facing the camera with a flushed toddler on her lap. She looks tired and anxious, glancing down at the child then back up into the lens. Natural window light, static camera at seated eye level, shallow depth of field. Looking directly into the lens she says, in a British accent: "So I just keep an eye on him then?" She then falls silent, still looking into the lens, waiting for a reply. Only the woman and her toddler are in frame — no other adults, no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
+                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A worried woman in her early thirties sits facing the camera with a flushed toddler on her lap, looking tired and anxious. Natural window light, static camera at seated eye level, shallow depth of field.
+
+She looks into the lens and speaks one single line of dialogue, exactly once, in a British accent: "Thanks for checking him out. So I just keep an eye on him then?"
+
+After the final word she says nothing more. She waits in silence for the remainder of the shot, shifting the toddler on her lap and glancing down at him before looking back into the lens. No repeated dialogue, no looped speech, no second delivery of the line.
+
+Only the woman and her toddler are in frame — no other adults, no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
                 },
                 {
                     id: 't2',
@@ -80,7 +86,13 @@ Vague advice — "come back if it gets worse" — is not safety-netting. The pat
                     video: 'drills/safety-netting/rhys-fever-2.mp4',
                     line: "And if I'm not sure whether it's bad enough to call? I don't want to waste anybody's time.",
                     exemplar: `Then please call anyway. If you are worried, that is reason enough — you will not be wasting anybody's time with a two-year-old. Ring us during the day, 111 in the evening or at the weekend, and 999 if he is struggling to breathe or you cannot wake him. Is that clear enough for you to act on tonight?`,
-                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. The same worried woman in her early thirties sits facing the camera with a flushed toddler on her lap. She looks slightly embarrassed and apologetic, shifting the child on her knee. Natural window light, static camera at seated eye level, shallow depth of field. Looking into the lens she says, in a British accent: "And if I'm not sure whether it's bad enough to call? I don't want to waste anybody's time." She then falls silent, still looking into the lens, waiting for a reply. Only the woman and her toddler are in frame — no other adults, no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
+                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. The same worried woman in her early thirties sits facing the camera with a flushed toddler on her lap, looking slightly embarrassed and apologetic. Natural window light, static camera at seated eye level, shallow depth of field.
+
+She looks into the lens and speaks one single line of dialogue, exactly once, in a British accent: "And if I'm not sure whether it's bad enough to call? I don't want to waste anybody's time."
+
+After the final word she says nothing more. She waits in silence for the remainder of the shot, looking down at the toddler and adjusting his cardigan before glancing back into the lens. No repeated dialogue, no looped speech, no second delivery of the line.
+
+Only the woman and her toddler are in frame — no other adults, no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
                 },
             ],
         },
@@ -94,7 +106,13 @@ Vague advice — "come back if it gets worse" — is not safety-netting. The pat
                     video: 'drills/safety-netting/daniel-headache-1.mp4',
                     line: "It's probably just stress then, isn't it?",
                     exemplar: `Most likely, yes. But there are a few things that would change my mind, and I want you to know them. If you ever get a headache that comes on suddenly and is the worst you have ever had, call 999 — that needs assessing the same hour. Come to A&E or ring 111 the same day if you develop a fever with a stiff neck, a rash, weakness or numbness, or if a headache wakes you from sleep.`,
-                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A 34-year-old man sits facing the camera, looking slightly sceptical, rubbing his temple and glancing away before returning his eyes to the lens. Natural window light, static camera at seated eye level, shallow depth of field. Looking directly into the lens he says, in a British accent: "It's probably just stress then, isn't it?" He then falls silent, still looking into the lens, waiting for a reply. He is the only person in frame — no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
+                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A 34-year-old man sits facing the camera, looking slightly sceptical. Natural window light, static camera at seated eye level, shallow depth of field.
+
+He looks into the lens and speaks one single line of dialogue, exactly once, in a British accent: "It's probably just stress then, isn't it?"
+
+After the final word he says nothing more. He waits in silence for the remainder of the shot, rubbing his temple once and glancing away before returning his eyes to the lens. No repeated dialogue, no looped speech, no second delivery of the line.
+
+He is the only person in frame — no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
                 },
                 {
                     id: 't2',
@@ -103,7 +121,13 @@ Vague advice — "come back if it gets worse" — is not safety-netting. The pat
                     video: 'drills/safety-netting/daniel-headache-2.mp4',
                     line: 'And how long should I give it before I come back?',
                     exemplar: `Give it four weeks with the changes we have talked about, and book a review then so we can see whether it is settling. But do not wait four weeks if anything changes — same day if you get a fever with a stiff neck or any weakness or numbness, and 999 straight away for a sudden worst-ever headache. Shall I book that review before you go?`,
-                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A 34-year-old man sits facing the camera, more engaged now, leaning slightly forward with his hands on his knees. Natural window light, static camera at seated eye level, shallow depth of field. Looking directly into the lens he says, in a British accent: "And how long should I give it before I come back?" He then falls silent, still looking into the lens, waiting for a reply. He is the only person in frame — no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
+                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A 34-year-old man sits facing the camera, more engaged now, leaning slightly forward with his hands on his knees. Natural window light, static camera at seated eye level, shallow depth of field.
+
+He looks into the lens and speaks one single line of dialogue, exactly once, in a British accent: "And how long should I give it before I come back?"
+
+After the final word he says nothing more. He waits in silence for the remainder of the shot, leaning back slightly in the chair and holding the camera's gaze. No repeated dialogue, no looped speech, no second delivery of the line.
+
+He is the only person in frame — no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
                 },
             ],
         },
@@ -117,7 +141,13 @@ Vague advice — "come back if it gets worse" — is not safety-netting. The pat
                     video: 'drills/safety-netting/beverley-chest-1.mp4',
                     line: 'And what if it happens again before the appointment?',
                     exemplar: `If it comes on with exertion and settles when you stop, use the spray and rest — that is expected. But if the tightness comes on while you are sitting still, or it lasts more than ten to fifteen minutes and does not settle with rest, call 999 immediately. Do not drive yourself and do not wait to see if it passes.`,
-                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A 61-year-old woman sits facing the camera looking apprehensive, turning a small medication spray over in her hands before looking up into the lens. Natural window light, static camera at seated eye level, shallow depth of field. Looking directly into the lens she says, in a British accent: "And what if it happens again before the appointment?" She then falls silent, still looking into the lens, waiting for a reply. She is the only person in frame — no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
+                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A 61-year-old woman sits facing the camera looking apprehensive, a small medication spray in her hands. Natural window light, static camera at seated eye level, shallow depth of field.
+
+She looks into the lens and speaks one single line of dialogue, exactly once, in a British accent: "And what if it happens again before the appointment?"
+
+After the final word she says nothing more. She waits in silence for the remainder of the shot, turning the spray over in her hands and glancing down at it before looking back into the lens. No repeated dialogue, no looped speech, no second delivery of the line.
+
+She is the only person in frame — no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
                 },
                 {
                     id: 't2',
@@ -127,7 +157,13 @@ Vague advice — "come back if it gets worse" — is not safety-netting. The pat
                     video: 'drills/safety-netting/beverley-chest-2.mp4',
                     line: "And if I use the spray and it doesn't help?",
                     exemplar: `Sit down, and take a second dose after five minutes. If the tightness is still there five minutes after that second dose — so around fifteen minutes in total — call 999 straight away, even if it has started to ease. Do not drive yourself to hospital and do not wait for someone to come home.`,
-                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A 61-year-old woman sits facing the camera, holding a small medication spray, her expression more worried than before as she looks up into the lens. Natural window light, static camera at seated eye level, shallow depth of field. Looking directly into the lens she says, in a British accent: "And if I use the spray and it doesn't help?" She then falls silent, still looking into the lens, waiting for a reply. She is the only person in frame — no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
+                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A 61-year-old woman sits facing the camera holding a small medication spray, her expression more worried than before. Natural window light, static camera at seated eye level, shallow depth of field.
+
+She looks into the lens and speaks one single line of dialogue, exactly once, in a British accent: "And if I use the spray and it doesn't help?"
+
+After the final word she says nothing more. She waits in silence for the remainder of the shot, gripping the spray a little tighter and holding the camera's gaze. No repeated dialogue, no looped speech, no second delivery of the line.
+
+She is the only person in frame — no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
                 },
             ],
         },
