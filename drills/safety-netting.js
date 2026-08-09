@@ -70,13 +70,16 @@ Vague advice — "come back if it gets worse" — is not safety-netting. The pat
                     video: 'drills/safety-netting/rhys-fever-1.mp4',
                     line: 'Thanks for checking him out. So I just keep an eye on him then?',
                     exemplar: `Yes — but I want you to know exactly what to look for. Ring 999 if he develops a rash that does not fade when you press a glass against it, if he becomes floppy or you cannot wake him properly, or if he is struggling to breathe. Contact us or 111 today if he stops drinking, has no wet nappies for eight hours, or if the fever is still there after five days. Can you tell me what you would do if that rash appeared?`,
-                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. A worried woman in her early thirties sits facing the camera with a flushed toddler on her lap, looking tired and anxious. Natural window light, static camera at seated eye level, shallow depth of field.
+                    // Framed on the parent alone: video models refuse to generate
+                    // children, and the safety-netting conversation is with her
+                    // anyway. The child exists only in the written context.
+                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. Head-and-shoulders framing of a woman in her early thirties sitting facing the camera, looking tired and anxious. Natural window light, static camera at seated eye level, shallow depth of field.
 
 She looks into the lens and speaks one single line of dialogue, exactly once, in a British accent: "Thanks for checking him out. So I just keep an eye on him then?"
 
-After the final word she says nothing more. She waits in silence for the remainder of the shot, shifting the toddler on her lap and glancing down at him before looking back into the lens. No repeated dialogue, no looped speech, no second delivery of the line.
+After the final word she says nothing more. She waits in silence for the remainder of the shot, glancing down at her hands and twisting her ring before looking back into the lens. No repeated dialogue, no looped speech, no second delivery of the line.
 
-Only the woman and her toddler are in frame — no other adults, no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
+She is the only person in frame. No children, no other adults, no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
                 },
                 {
                     id: 't2',
@@ -86,13 +89,13 @@ Only the woman and her toddler are in frame — no other adults, no doctor, no o
                     video: 'drills/safety-netting/rhys-fever-2.mp4',
                     line: "And if I'm not sure whether it's bad enough to call? I don't want to waste anybody's time.",
                     exemplar: `Then please call anyway. If you are worried, that is reason enough — you will not be wasting anybody's time with a two-year-old. Ring us during the day, 111 in the evening or at the weekend, and 999 if he is struggling to breathe or you cannot wake him. Is that clear enough for you to act on tonight?`,
-                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. The same worried woman in her early thirties sits facing the camera with a flushed toddler on her lap, looking slightly embarrassed and apologetic. Natural window light, static camera at seated eye level, shallow depth of field.
+                    videoPrompt: `Point-of-view shot from the doctor's seat in a UK GP consulting room — the camera IS the doctor, so no doctor appears on screen. Head-and-shoulders framing of the same woman in her early thirties sitting facing the camera, looking slightly embarrassed and apologetic. Natural window light, static camera at seated eye level, shallow depth of field.
 
 She looks into the lens and speaks one single line of dialogue, exactly once, in a British accent: "And if I'm not sure whether it's bad enough to call? I don't want to waste anybody's time."
 
-After the final word she says nothing more. She waits in silence for the remainder of the shot, looking down at the toddler and adjusting his cardigan before glancing back into the lens. No repeated dialogue, no looped speech, no second delivery of the line.
+After the final word she says nothing more. She waits in silence for the remainder of the shot, pulling her cardigan sleeve over her wrist and giving a small apologetic shrug before looking back into the lens. No repeated dialogue, no looped speech, no second delivery of the line.
 
-Only the woman and her toddler are in frame — no other adults, no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
+She is the only person in frame. No children, no other adults, no doctor, no over-the-shoulder or reverse-angle framing. Documentary realism, unretouched, no music, no captions, no on-screen text.`,
                 },
             ],
         },
